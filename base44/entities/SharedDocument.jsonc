@@ -1,0 +1,47 @@
+{
+  "name": "SharedDocument",
+  "type": "object",
+  "properties": {
+    "client_email": {
+      "type": "string",
+      "description": "Client this document is shared with"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL to the uploaded file"
+    },
+    "file_name": {
+      "type": "string"
+    },
+    "file_type": {
+      "type": "string",
+      "description": "e.g. pdf, docx, xlsx"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "report",
+        "proposal",
+        "contract",
+        "presentation",
+        "other"
+      ],
+      "default": "other"
+    },
+    "shared_by": {
+      "type": "string",
+      "description": "VA name who shared this"
+    }
+  },
+  "required": [
+    "client_email",
+    "title",
+    "file_url"
+  ]
+}

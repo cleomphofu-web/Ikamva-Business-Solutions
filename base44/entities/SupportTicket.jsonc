@@ -1,0 +1,97 @@
+{
+  "name": "SupportTicket",
+  "type": "object",
+  "properties": {
+    "subject": {
+      "type": "string",
+      "description": "Ticket subject"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Client who submitted the ticket"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "in_progress",
+        "resolved",
+        "closed"
+      ],
+      "default": "open"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "billing",
+        "technical",
+        "service",
+        "general"
+      ],
+      "default": "general"
+    },
+    "description": {
+      "type": "string",
+      "description": "Issue description"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "VA or admin assigned"
+    },
+    "resolution": {
+      "type": "string",
+      "description": "Resolution notes"
+    }
+  },
+  "required": [
+    "subject",
+    "client_email",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.client_email": "{{user.email}}"
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.client_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

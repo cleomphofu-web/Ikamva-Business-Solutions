@@ -1,0 +1,151 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "client_email": {
+      "type": "string",
+      "description": "Client this project belongs to"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "retainer",
+        "project_based"
+      ],
+      "default": "retainer"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "on_hold",
+        "completed",
+        "cancelled"
+      ],
+      "default": "not_started"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "prospecting",
+        "qualification",
+        "proposal",
+        "negotiation",
+        "closed_won",
+        "closed_lost"
+      ],
+      "default": "prospecting",
+      "description": "Sales pipeline stage for deals"
+    },
+    "value": {
+      "type": "number",
+      "description": "Deal value in ZAR (pipeline)"
+    },
+    "probability": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 50,
+      "description": "Win probability percentage"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "estimated_hours": {
+      "type": "number",
+      "default": 0
+    },
+    "hours_logged": {
+      "type": "number",
+      "default": 0
+    },
+    "hourly_rate": {
+      "type": "number",
+      "description": "Rate in ZAR"
+    },
+    "fixed_quote": {
+      "type": "number",
+      "description": "Fixed price if project-based"
+    },
+    "va_name": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "milestones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "client_email",
+    "title",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.client_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

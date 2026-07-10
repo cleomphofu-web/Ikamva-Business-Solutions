@@ -1,0 +1,94 @@
+{
+  "name": "ClientService",
+  "type": "object",
+  "properties": {
+    "client_email": {
+      "type": "string",
+      "description": "Email of the client this service belongs to"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "starter",
+        "professional",
+        "enterprise"
+      ],
+      "description": "Client's plan"
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "schedule_management",
+        "email_management",
+        "document_preparation",
+        "communication_hub"
+      ],
+      "description": "Type of service"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "cancelled"
+      ],
+      "default": "active"
+    },
+    "hours_allocated": {
+      "type": "number",
+      "description": "Total hours allocated per month"
+    },
+    "hours_used": {
+      "type": "number",
+      "description": "Hours used this month",
+      "default": 0
+    },
+    "renewal_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next renewal date"
+    },
+    "va_name": {
+      "type": "string",
+      "description": "Name of assigned VA"
+    },
+    "va_email": {
+      "type": "string",
+      "description": "Email of assigned VA"
+    }
+  },
+  "required": [
+    "client_email",
+    "plan",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.client_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
