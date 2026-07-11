@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 
 const FROM = 'Aura Virtual Assistants';
 
@@ -97,7 +96,7 @@ export async function notifyInvoiceCreated(invoice) {
     </p>
   `;
 
-  await db.integrations.Core.SendEmail({
+  await appServices.email.send({
     from_name: FROM,
     to: invoice.client_email,
     subject: `Invoice ${invoice.invoice_number || ''} – ${fmtMoney(invoice.total)} due ${fmtDate(invoice.due_date)}`,
@@ -131,7 +130,7 @@ export async function notifyInvoicePaid(invoice) {
     </p>
   `;
 
-  await db.integrations.Core.SendEmail({
+  await appServices.email.send({
     from_name: FROM,
     to: invoice.client_email,
     subject: `Payment Confirmed – Invoice ${invoice.invoice_number || ''} (${fmtMoney(invoice.total)})`,
@@ -162,7 +161,7 @@ export async function notifyDocumentShared(doc) {
     </p>
   `;
 
-  await db.integrations.Core.SendEmail({
+  await appServices.email.send({
     from_name: FROM,
     to: doc.client_email,
     subject: `New Document Shared: ${doc.title}`,
@@ -217,7 +216,7 @@ export async function notifyProjectStatusChanged(project, oldStatus) {
     </p>
   `;
 
-  await db.integrations.Core.SendEmail({
+  await appServices.email.send({
     from_name: FROM,
     to: project.client_email,
     subject: `Project Update: "${project.title}" is now ${newLabel}`,
@@ -252,7 +251,7 @@ export async function notifyProjectCreated(project) {
     </p>
   `;
 
-  await db.integrations.Core.SendEmail({
+  await appServices.email.send({
     from_name: FROM,
     to: project.client_email,
     subject: `New Project Started: "${project.title}"`,
@@ -292,7 +291,7 @@ export async function notifyTaskAssigned(task) {
     </p>
   `;
 
-  await db.integrations.Core.SendEmail({
+  await appServices.email.send({
     from_name: FROM,
     to: task.client_email,
     subject: `New Task Assigned: ${task.title}`,

@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -41,11 +40,11 @@ export default function AutoReports() {
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ['admin-reports'],
-    queryFn: () => db.entities.UsageReport.list('-created_date', 100),
+    queryFn: () => appServices.records.UsageReport.list('-created_date', 100),
   });
 
   const deleteMut = useMutation({
-    mutationFn: id => db.entities.UsageReport.delete(id),
+    mutationFn: id => appServices.records.UsageReport.delete(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-reports'] });
       toast.success('Report deleted');
@@ -53,7 +52,7 @@ export default function AutoReports() {
   });
 
   const saveMut = useMutation({
-    mutationFn: (data) => db.entities.UsageReport.create(data),
+    mutationFn: (data) => appServices.records.UsageReport.create(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-reports'] });
       setModal(false);
@@ -72,7 +71,7 @@ export default function AutoReports() {
     const breakdownText = form.task_breakdown
       ? `\nTask breakdown:\n${form.task_breakdown}`
       : '';
-    const res = await db.integrations.Core.InvokeLLM({
+    const res = await appServices.ai.generateJson({
       prompt: `You are a professional virtual assistant agency writing a monthly usage report for a client.
 
 Client: ${form.client_email}

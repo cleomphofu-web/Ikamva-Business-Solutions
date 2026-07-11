@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
@@ -10,10 +9,10 @@ export default function CRMAccounts() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
 
-  const { data: users = [] } = useQuery({ queryKey: ['crm-users'], queryFn: () => db.entities.User.list() });
-  const { data: services = [] } = useQuery({ queryKey: ['crm-all-services'], queryFn: () => db.entities.ClientService.list() });
-  const { data: invoices = [] } = useQuery({ queryKey: ['crm-all-invoices'], queryFn: () => db.entities.Invoice.list() });
-  const { data: projects = [] } = useQuery({ queryKey: ['crm-deals'], queryFn: () => db.entities.Project.list() });
+  const { data: users = [] } = useQuery({ queryKey: ['crm-users'], queryFn: () => appServices.records.User.list() });
+  const { data: services = [] } = useQuery({ queryKey: ['crm-all-services'], queryFn: () => appServices.records.ClientService.list() });
+  const { data: invoices = [] } = useQuery({ queryKey: ['crm-all-invoices'], queryFn: () => appServices.records.Invoice.list() });
+  const { data: projects = [] } = useQuery({ queryKey: ['crm-deals'], queryFn: () => appServices.records.Project.list() });
 
   const clients = users.filter(u => u.role !== 'admin');
 

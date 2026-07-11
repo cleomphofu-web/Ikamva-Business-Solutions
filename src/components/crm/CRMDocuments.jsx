@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -21,11 +20,11 @@ function DocModal({ onClose }) {
   const [form, setForm] = useState({ title: '', description: '', client_email: '', category: 'other', file_url: '', file_name: '' });
   const [uploading, setUploading] = useState(false);
 
-  const { data: users = [] } = useQuery({ queryKey: ['crm-users'], queryFn: () => db.entities.User.list() });
+  const { data: users = [] } = useQuery({ queryKey: ['crm-users'], queryFn: () => appServices.records.User.list() });
   const clients = users.filter(u => u.role !== 'admin');
 
   const create = useMutation({
-    mutationFn: data => db.entities.SharedDocument.create(data),
+    mutationFn: data => appServices.records.SharedDocument.create(data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['crm-docs'] }); toast.success('Document shared'); onClose(); },
   });
 
@@ -33,7 +32,7 @@ function DocModal({ onClose }) {
     if (!file) return;
     setUploading(true);
     try {
-      const { file_url } = await db.integrations.Core.UploadFile({ file });
+      const { file_url } = await appServices.files.upload({ file });
       setForm(f => ({ ...f, file_url, file_name: file.name }));
       if (!form.title) setForm(f => ({ ...f, title: file.name.replace(/\.[^.]+$/, '') }));
     } catch { toast.error('Upload failed'); }
@@ -109,10 +108,10 @@ export default function CRMDocuments() {
   const [showModal, setShowModal] = useState(false);
   const [filterCat, setFilterCat] = useState('all');
 
-  const { data: docs = [], isLoading } = useQuery({ queryKey: ['crm-docs'], queryFn: () => db.entities.SharedDocument.list('-created_date') });
+  const { data: docs = [], isLoading } = useQuery({ queryKey: ['crm-docs'], queryFn: () => appServices.records.SharedDocument.list('-created_date') });
 
   const deleteDoc = useMutation({
-    mutationFn: id => db.entities.SharedDocument.delete(id),
+    mutationFn: id => appServices.records.SharedDocument.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['crm-docs'] }); toast.success('Document deleted'); },
   });
 

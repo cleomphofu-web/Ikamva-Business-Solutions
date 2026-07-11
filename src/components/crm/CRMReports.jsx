@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 
@@ -12,11 +11,11 @@ import { TrendingUp, DollarSign, CheckSquare, Users, FileText, Activity } from '
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 export default function CRMReports() {
-  const { data: tasks = [] } = useQuery({ queryKey: ['crm-all-tasks'], queryFn: () => db.entities.Task.list() });
-  const { data: invoices = [] } = useQuery({ queryKey: ['crm-all-invoices'], queryFn: () => db.entities.Invoice.list() });
-  const { data: users = [] } = useQuery({ queryKey: ['crm-users'], queryFn: () => db.entities.User.list() });
-  const { data: notes = [] } = useQuery({ queryKey: ['crm-all-notes'], queryFn: () => db.entities.CRMNote.list('-created_date', 200) });
-  const { data: leads = [] } = useQuery({ queryKey: ['crm-leads'], queryFn: () => db.entities.Inquiry.list() });
+  const { data: tasks = [] } = useQuery({ queryKey: ['crm-all-tasks'], queryFn: () => appServices.records.Task.list() });
+  const { data: invoices = [] } = useQuery({ queryKey: ['crm-all-invoices'], queryFn: () => appServices.records.Invoice.list() });
+  const { data: users = [] } = useQuery({ queryKey: ['crm-users'], queryFn: () => appServices.records.User.list() });
+  const { data: notes = [] } = useQuery({ queryKey: ['crm-all-notes'], queryFn: () => appServices.records.CRMNote.list('-created_date', 200) });
+  const { data: leads = [] } = useQuery({ queryKey: ['crm-leads'], queryFn: () => appServices.records.Inquiry.list() });
 
   const clients = users.filter(u => u.role !== 'admin');
   const paidInvoices = invoices.filter(i => i.status === 'paid');

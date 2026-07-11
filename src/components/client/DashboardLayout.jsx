@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import authService from '@/lib/auth-service';
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -49,7 +48,7 @@ export default function DashboardLayout({ children, user }) {
         <div className="ml-auto flex items-center gap-3">
           <span className="text-sm text-muted-foreground hidden sm:block">{user?.full_name || user?.email}</span>
           <button
-            onClick={() => db.auth.logout('/')}
+            onClick={() => authService.signOut({ redirectTo: '/' })}
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <LogOut className="w-4 h-4" />

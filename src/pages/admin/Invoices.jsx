@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -177,16 +176,16 @@ export default function AdminInvoices() {
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['admin-invoices'],
-    queryFn: () => db.entities.Invoice.list('-created_date'),
+    queryFn: () => appServices.records.Invoice.list('-created_date'),
   });
 
   const { data: reports = [] } = useQuery({
     queryKey: ['admin-reports-all'],
-    queryFn: () => db.entities.UsageReport.list('-created_date'),
+    queryFn: () => appServices.records.UsageReport.list('-created_date'),
   });
 
   const createMut = useMutation({
-    mutationFn: data => db.entities.Invoice.create(data),
+    mutationFn: data => appServices.records.Invoice.create(data),
     onSuccess: (created) => {
       qc.invalidateQueries({ queryKey: ['admin-invoices'] });
       setModal(null);
@@ -195,7 +194,7 @@ export default function AdminInvoices() {
   });
 
   const updateMut = useMutation({
-    mutationFn: ({ id, data, prevStatus }) => db.entities.Invoice.update(id, data).then(updated => ({ updated, prevStatus })),
+    mutationFn: ({ id, data, prevStatus }) => appServices.records.Invoice.update(id, data).then(updated => ({ updated, prevStatus })),
     onSuccess: ({ updated, prevStatus }) => {
       qc.invalidateQueries({ queryKey: ['admin-invoices'] });
       setModal(null);
@@ -204,7 +203,7 @@ export default function AdminInvoices() {
   });
 
   const deleteMut = useMutation({
-    mutationFn: id => db.entities.Invoice.delete(id),
+    mutationFn: id => appServices.records.Invoice.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-invoices'] }),
   });
 

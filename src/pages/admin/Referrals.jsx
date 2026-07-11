@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -66,11 +65,11 @@ export default function AdminReferrals() {
 
   const { data: referrals = [], isLoading } = useQuery({
     queryKey: ['admin-referrals'],
-    queryFn: () => db.entities.Referral.list('-created_date'),
+    queryFn: () => appServices.records.Referral.list('-created_date'),
   });
 
   const updateMut = useMutation({
-    mutationFn: ({ id, data }) => db.entities.Referral.update(id, data),
+    mutationFn: ({ id, data }) => appServices.records.Referral.update(id, data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-referrals'] }); setEditing(null); },
   });
 

@@ -1,5 +1,5 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import authService from '@/lib/auth-service';
+import appServices from '@/lib/app-services';
 import React, { useEffect, useState, useRef } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -72,18 +72,18 @@ export default function ClientProjects() {
   const [user, setUser] = useState(null);
   const qc = useQueryClient();
   const prevProjectsRef = useRef({});
-  useEffect(() => { db.auth.me().then(setUser); }, []);
+  useEffect(() => { authService.getCurrentUser().then(setUser); }, []);
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['client-projects', user?.email],
-    queryFn: () => db.entities.Project.filter({ client_email: user.email }, '-created_date'),
+    queryFn: () => appServices.records.Project.filter({ client_email: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 
   // Real-time subscription — show toast on status change or new project
   useEffect(() => {
     if (!user?.email) return;
-    const unsubscribe = db.entities.Project.subscribe((event) => {
+    const unsubscribe = appServices.records.Project.subscribe((event) => {
       const p = event.data;
       if (!p || p.client_email !== user.email) return;
 

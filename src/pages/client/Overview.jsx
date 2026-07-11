@@ -1,5 +1,5 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import authService from '@/lib/auth-service';
+import appServices from '@/lib/app-services';
 import React, { useEffect, useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
@@ -12,24 +12,24 @@ export default function ClientOverview() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    db.auth.me().then(setUser);
+    authService.getCurrentUser().then(setUser);
   }, []);
 
   const { data: services = [] } = useQuery({
     queryKey: ['client-services', user?.email],
-    queryFn: () => db.entities.ClientService.filter({ client_email: user.email }),
+    queryFn: () => appServices.records.ClientService.filter({ client_email: user.email }),
     enabled: !!user?.email,
   });
 
   const { data: reports = [] } = useQuery({
     queryKey: ['client-reports', user?.email],
-    queryFn: () => db.entities.UsageReport.filter({ client_email: user.email }, '-created_date', 3),
+    queryFn: () => appServices.records.UsageReport.filter({ client_email: user.email }, '-created_date', 3),
     enabled: !!user?.email,
   });
 
   const { data: documents = [] } = useQuery({
     queryKey: ['client-documents', user?.email],
-    queryFn: () => db.entities.SharedDocument.filter({ client_email: user.email }, '-created_date', 5),
+    queryFn: () => appServices.records.SharedDocument.filter({ client_email: user.email }, '-created_date', 5),
     enabled: !!user?.email,
   });
 

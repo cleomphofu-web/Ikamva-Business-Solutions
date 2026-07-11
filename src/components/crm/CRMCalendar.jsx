@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
@@ -9,8 +8,8 @@ import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSa
 export default function CRMCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  const { data: tasks = [] } = useQuery({ queryKey: ['crm-all-tasks'], queryFn: () => db.entities.Task.list() });
-  const { data: notes = [] } = useQuery({ queryKey: ['crm-all-notes'], queryFn: () => db.entities.CRMNote.list('-created_date', 200) });
+  const { data: tasks = [] } = useQuery({ queryKey: ['crm-all-tasks'], queryFn: () => appServices.records.Task.list() });
+  const { data: notes = [] } = useQuery({ queryKey: ['crm-all-notes'], queryFn: () => appServices.records.CRMNote.list('-created_date', 200) });
 
   const events = useMemo(() => {
     const map = {};

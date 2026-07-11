@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -39,8 +38,8 @@ function LeadModal({ lead, onClose }) {
 
   const save = useMutation({
     mutationFn: data => isEdit
-      ? db.entities.Inquiry.update(data.id, data)
-      : db.entities.Inquiry.create(data),
+      ? appServices.records.Inquiry.update(data.id, data)
+      : appServices.records.Inquiry.create(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['crm-leads'] });
       toast.success(isEdit ? 'Lead updated' : 'Lead created');
@@ -157,16 +156,16 @@ export default function CRMLeads() {
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ['crm-leads'],
-    queryFn: () => db.entities.Inquiry.list('-created_date'),
+    queryFn: () => appServices.records.Inquiry.list('-created_date'),
   });
 
   const updateLead = useMutation({
-    mutationFn: ({ id, data }) => db.entities.Inquiry.update(id, data),
+    mutationFn: ({ id, data }) => appServices.records.Inquiry.update(id, data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['crm-leads'] }); toast.success('Status updated'); },
   });
 
   const deleteLead = useMutation({
-    mutationFn: id => db.entities.Inquiry.delete(id),
+    mutationFn: id => appServices.records.Inquiry.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['crm-leads'] }); toast.success('Lead removed'); },
   });
 

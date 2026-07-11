@@ -1,5 +1,5 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import authService from '@/lib/auth-service';
+import appServices from '@/lib/app-services';
 import React, { useEffect, useState } from 'react';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -23,16 +23,16 @@ export default function Referral() {
   const [submitted, setSubmitted] = useState(false);
   const qc = useQueryClient();
 
-  useEffect(() => { db.auth.me().then(setUser); }, []);
+  useEffect(() => { authService.getCurrentUser().then(setUser); }, []);
 
   const { data: referrals = [] } = useQuery({
     queryKey: ['my-referrals', user?.email],
-    queryFn: () => db.entities.Referral.filter({ referrer_email: user.email }, '-created_date'),
+    queryFn: () => appServices.records.Referral.filter({ referrer_email: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 
   const createMut = useMutation({
-    mutationFn: data => db.entities.Referral.create(data),
+    mutationFn: data => appServices.records.Referral.create(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-referrals'] });
       setForm(empty);

@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState, useEffect } from 'react';
 
 import { notifyTaskAssigned } from '@/lib/notifications';
@@ -113,10 +112,10 @@ function FileDrawer({ task, onClose, onUpdated }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingCompleted(true);
-    const { file_url } = await db.integrations.Core.UploadFile({ file });
+    const { file_url } = await appServices.files.upload({ file });
     const newFile = { file_url, file_name: file.name, uploaded_at: new Date().toISOString() };
     const updated = [...(task.completed_files || []), newFile];
-    await db.entities.Task.update(task.id, { completed_files: updated });
+    await appServices.records.Task.update(task.id, { completed_files: updated });
     onUpdated({ ...task, completed_files: updated });
     toast.success('Completed file uploaded');
     setUploadingCompleted(false);
@@ -125,7 +124,7 @@ function FileDrawer({ task, onClose, onUpdated }) {
 
   const removeCompletedFile = async (idx) => {
     const updated = task.completed_files.filter((_, i) => i !== idx);
-    await db.entities.Task.update(task.id, { completed_files: updated });
+    await appServices.records.Task.update(task.id, { completed_files: updated });
     onUpdated({ ...task, completed_files: updated });
     toast.success('File removed');
   };
@@ -219,18 +218,18 @@ export default function AdminTasks() {
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['admin-tasks'],
-    queryFn: () => db.entities.Task.list('-created_date'),
+    queryFn: () => appServices.records.Task.list('-created_date'),
   });
 
   useEffect(() => {
-    const unsub = db.entities.Task.subscribe(() => {
+    const unsub = appServices.records.Task.subscribe(() => {
       qc.invalidateQueries({ queryKey: ['admin-tasks'] });
     });
     return unsub;
   }, [qc]);
 
   const createMut = useMutation({
-    mutationFn: data => db.entities.Task.create(data),
+    mutationFn: data => appServices.records.Task.create(data),
     onSuccess: (created) => {
       qc.invalidateQueries({ queryKey: ['admin-tasks'] });
       setModal(null);
@@ -239,12 +238,12 @@ export default function AdminTasks() {
   });
 
   const updateMut = useMutation({
-    mutationFn: ({ id, data }) => db.entities.Task.update(id, data),
+    mutationFn: ({ id, data }) => appServices.records.Task.update(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-tasks'] }),
   });
 
   const deleteMut = useMutation({
-    mutationFn: id => db.entities.Task.delete(id),
+    mutationFn: id => appServices.records.Task.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-tasks'] }),
   });
 

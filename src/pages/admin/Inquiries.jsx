@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -18,10 +17,10 @@ export default function Inquiries() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  const { data: inquiries = [] } = useQuery({ queryKey: ['inquiries'], queryFn: () => db.entities.Inquiry.list('-created_date') });
+  const { data: inquiries = [] } = useQuery({ queryKey: ['inquiries'], queryFn: () => appServices.records.Inquiry.list('-created_date') });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => db.entities.Inquiry.update(id, data),
+    mutationFn: ({ id, data }) => appServices.records.Inquiry.update(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['inquiries'] }),
   });
 

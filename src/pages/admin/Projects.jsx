@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -140,11 +139,11 @@ export default function AdminProjects() {
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['admin-projects'],
-    queryFn: () => db.entities.Project.list('-created_date'),
+    queryFn: () => appServices.records.Project.list('-created_date'),
   });
 
   const createMut = useMutation({
-    mutationFn: d => db.entities.Project.create(d),
+    mutationFn: d => appServices.records.Project.create(d),
     onSuccess: async (created) => {
       qc.invalidateQueries({ queryKey: ['admin-projects'] });
       setModal(null);
@@ -153,7 +152,7 @@ export default function AdminProjects() {
     },
   });
   const updateMut = useMutation({
-    mutationFn: ({ id, data, oldStatus }) => db.entities.Project.update(id, data).then(r => ({ result: r, oldStatus })),
+    mutationFn: ({ id, data, oldStatus }) => appServices.records.Project.update(id, data).then(r => ({ result: r, oldStatus })),
     onSuccess: async ({ result, oldStatus }) => {
       qc.invalidateQueries({ queryKey: ['admin-projects'] });
       setModal(null);
@@ -164,7 +163,7 @@ export default function AdminProjects() {
     },
   });
   const deleteMut = useMutation({
-    mutationFn: id => db.entities.Project.delete(id),
+    mutationFn: id => appServices.records.Project.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-projects'] }),
   });
 

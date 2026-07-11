@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -51,7 +50,7 @@ export default function AdminDocuments() {
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ['admin-documents'],
-    queryFn: () => db.entities.SharedDocument.list('-created_date', 200),
+    queryFn: () => appServices.records.SharedDocument.list('-created_date', 200),
   });
 
   const createMut = useMutation({
@@ -61,12 +60,12 @@ export default function AdminDocuments() {
       let file_name = '';
       let file_type = '';
       if (file) {
-        const { file_url: url } = await db.integrations.Core.UploadFile({ file });
+        const { file_url: url } = await appServices.files.upload({ file });
         file_url = url;
         file_name = file.name;
         file_type = file.name.split('.').pop().toLowerCase();
       }
-      return db.entities.SharedDocument.create({ ...rest, file_url, file_name, file_type });
+      return appServices.records.SharedDocument.create({ ...rest, file_url, file_name, file_type });
     },
     onSuccess: (created) => {
       qc.invalidateQueries({ queryKey: ['admin-documents'] });
@@ -77,7 +76,7 @@ export default function AdminDocuments() {
   });
 
   const deleteMut = useMutation({
-    mutationFn: id => db.entities.SharedDocument.delete(id),
+    mutationFn: id => appServices.records.SharedDocument.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-documents'] }),
   });
 

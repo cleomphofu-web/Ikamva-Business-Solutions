@@ -1,5 +1,5 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import authService from '@/lib/auth-service';
+import appServices from '@/lib/app-services';
 import React, { useEffect, useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
@@ -37,12 +37,12 @@ export default function Documents() {
   const [filterCat, setFilterCat] = useState('all');
 
   useEffect(() => {
-    db.auth.me().then(setUser);
+    authService.getCurrentUser().then(setUser);
   }, []);
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ['client-documents', user?.email],
-    queryFn: () => db.entities.SharedDocument.filter({ client_email: user.email }, '-created_date'),
+    queryFn: () => appServices.records.SharedDocument.filter({ client_email: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 

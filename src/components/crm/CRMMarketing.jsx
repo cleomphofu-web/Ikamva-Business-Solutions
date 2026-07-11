@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -24,7 +23,7 @@ function CampaignModal({ campaign, onClose }) {
   const [form, setForm] = useState(campaign || { name: '', type: 'email', status: 'draft', channel: '', budget: 0, start_date: '', end_date: '', notes: '' });
 
   const save = useMutation({
-    mutationFn: data => isEdit ? db.entities.Campaign.update(data.id, data) : db.entities.Campaign.create(data),
+    mutationFn: data => isEdit ? appServices.records.Campaign.update(data.id, data) : appServices.records.Campaign.create(data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['crm-campaigns'] }); toast.success(isEdit ? 'Campaign updated' : 'Campaign created'); onClose(); },
   });
 
@@ -103,12 +102,12 @@ export default function CRMMarketing() {
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
 
-  const { data: campaigns = [], isLoading } = useQuery({ queryKey: ['crm-campaigns'], queryFn: () => db.entities.Campaign.list('-created_date') });
-  const { data: subscribers = [] } = useQuery({ queryKey: ['crm-subscribers'], queryFn: () => db.entities.Subscriber.list() });
-  const { data: leads = [] } = useQuery({ queryKey: ['crm-leads'], queryFn: () => db.entities.Inquiry.list() });
+  const { data: campaigns = [], isLoading } = useQuery({ queryKey: ['crm-campaigns'], queryFn: () => appServices.records.Campaign.list('-created_date') });
+  const { data: subscribers = [] } = useQuery({ queryKey: ['crm-subscribers'], queryFn: () => appServices.records.Subscriber.list() });
+  const { data: leads = [] } = useQuery({ queryKey: ['crm-leads'], queryFn: () => appServices.records.Inquiry.list() });
 
   const deleteCampaign = useMutation({
-    mutationFn: id => db.entities.Campaign.delete(id),
+    mutationFn: id => appServices.records.Campaign.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['crm-campaigns'] }); toast.success('Campaign deleted'); },
   });
 

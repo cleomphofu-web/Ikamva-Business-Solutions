@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -28,11 +27,11 @@ function TicketModal({ ticket, onClose }) {
   const isEdit = !!ticket?.id;
   const [form, setForm] = useState(ticket || { subject: '', client_email: '', status: 'open', priority: 'medium', category: 'general', description: '', assigned_to: '' });
 
-  const { data: users = [] } = useQuery({ queryKey: ['crm-users'], queryFn: () => db.entities.User.list() });
+  const { data: users = [] } = useQuery({ queryKey: ['crm-users'], queryFn: () => appServices.records.User.list() });
   const clients = users.filter(u => u.role !== 'admin');
 
   const save = useMutation({
-    mutationFn: data => isEdit ? db.entities.SupportTicket.update(data.id, data) : db.entities.SupportTicket.create(data),
+    mutationFn: data => isEdit ? appServices.records.SupportTicket.update(data.id, data) : appServices.records.SupportTicket.create(data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['crm-tickets'] }); toast.success(isEdit ? 'Ticket updated' : 'Ticket created'); onClose(); },
   });
 
@@ -112,14 +111,14 @@ export default function CRMSupport() {
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
 
-  const { data: tickets = [], isLoading } = useQuery({ queryKey: ['crm-tickets'], queryFn: () => db.entities.SupportTicket.list('-created_date') });
+  const { data: tickets = [], isLoading } = useQuery({ queryKey: ['crm-tickets'], queryFn: () => appServices.records.SupportTicket.list('-created_date') });
 
   const updateStatus = useMutation({
-    mutationFn: ({ id, data }) => db.entities.SupportTicket.update(id, data),
+    mutationFn: ({ id, data }) => appServices.records.SupportTicket.update(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['crm-tickets'] }),
   });
   const deleteTicket = useMutation({
-    mutationFn: id => db.entities.SupportTicket.delete(id),
+    mutationFn: id => appServices.records.SupportTicket.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['crm-tickets'] }); toast.success('Ticket deleted'); },
   });
 

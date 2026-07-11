@@ -1,5 +1,5 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import authService from '@/lib/auth-service';
+import appServices from '@/lib/app-services';
 import React, { useEffect, useState } from 'react';
 
 import DashboardLayout from '@/components/client/DashboardLayout';
@@ -35,10 +35,10 @@ function FileUploadButton({ taskId, existingFiles = [], onUploaded }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const { file_url } = await db.integrations.Core.UploadFile({ file });
+    const { file_url } = await appServices.files.upload({ file });
     const newFile = { file_url, file_name: file.name, uploaded_at: new Date().toISOString() };
     const updated = [...existingFiles, newFile];
-    await db.entities.Task.update(taskId, { client_files: updated });
+    await appServices.records.Task.update(taskId, { client_files: updated });
     onUploaded(taskId, updated);
     toast.success('File uploaded successfully');
     setUploading(false);
@@ -126,14 +126,14 @@ export default function ClientTasks() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { db.auth.me().then(setUser); }, []);
+  useEffect(() => { authService.getCurrentUser().then(setUser); }, []);
 
   useEffect(() => {
     if (!user?.email) return;
-    db.entities.Task.filter({ client_email: user.email }, '-created_date')
+    appServices.records.Task.filter({ client_email: user.email }, '-created_date')
       .then(setTasks).finally(() => setLoading(false));
 
-    const unsub = db.entities.Task.subscribe(event => {
+    const unsub = appServices.records.Task.subscribe(event => {
       if (event.type === 'create' && event.data.client_email === user.email) {
         setTasks(prev => [event.data, ...prev]);
       } else if (event.type === 'update') {

@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -30,23 +29,23 @@ function ContactDrawer({ client, onClose }) {
 
   const { data: notes = [] } = useQuery({
     queryKey: ['crm-notes', client.email],
-    queryFn: () => db.entities.CRMNote.filter({ client_email: client.email }, '-created_date'),
+    queryFn: () => appServices.records.CRMNote.filter({ client_email: client.email }, '-created_date'),
   });
   const { data: tasks = [] } = useQuery({
     queryKey: ['crm-tasks', client.email],
-    queryFn: () => db.entities.Task.filter({ client_email: client.email }, '-created_date', 20),
+    queryFn: () => appServices.records.Task.filter({ client_email: client.email }, '-created_date', 20),
   });
   const { data: invoices = [] } = useQuery({
     queryKey: ['crm-invoices', client.email],
-    queryFn: () => db.entities.Invoice.filter({ client_email: client.email }, '-created_date', 10),
+    queryFn: () => appServices.records.Invoice.filter({ client_email: client.email }, '-created_date', 10),
   });
   const { data: services = [] } = useQuery({
     queryKey: ['crm-services', client.email],
-    queryFn: () => db.entities.ClientService.filter({ client_email: client.email }),
+    queryFn: () => appServices.records.ClientService.filter({ client_email: client.email }),
   });
 
   const createNote = useMutation({
-    mutationFn: data => db.entities.CRMNote.create(data),
+    mutationFn: data => appServices.records.CRMNote.create(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['crm-notes', client.email] });
       qc.invalidateQueries({ queryKey: ['crm-all-notes'] });
@@ -56,7 +55,7 @@ function ContactDrawer({ client, onClose }) {
     },
   });
   const deleteNote = useMutation({
-    mutationFn: id => db.entities.CRMNote.delete(id),
+    mutationFn: id => appServices.records.CRMNote.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['crm-notes', client.email] }),
   });
 
@@ -213,11 +212,11 @@ export default function CRMContacts() {
   const [filterPlan, setFilterPlan] = useState('all');
   const [selected, setSelected] = useState(null);
 
-  const { data: users = [], isLoading } = useQuery({ queryKey: ['crm-users'], queryFn: () => db.entities.User.list() });
-  const { data: services = [] } = useQuery({ queryKey: ['crm-all-services'], queryFn: () => db.entities.ClientService.list() });
-  const { data: tasks = [] } = useQuery({ queryKey: ['crm-all-tasks'], queryFn: () => db.entities.Task.list() });
-  const { data: invoices = [] } = useQuery({ queryKey: ['crm-all-invoices'], queryFn: () => db.entities.Invoice.list() });
-  const { data: notes = [] } = useQuery({ queryKey: ['crm-all-notes'], queryFn: () => db.entities.CRMNote.list('-created_date', 200) });
+  const { data: users = [], isLoading } = useQuery({ queryKey: ['crm-users'], queryFn: () => appServices.records.User.list() });
+  const { data: services = [] } = useQuery({ queryKey: ['crm-all-services'], queryFn: () => appServices.records.ClientService.list() });
+  const { data: tasks = [] } = useQuery({ queryKey: ['crm-all-tasks'], queryFn: () => appServices.records.Task.list() });
+  const { data: invoices = [] } = useQuery({ queryKey: ['crm-all-invoices'], queryFn: () => appServices.records.Invoice.list() });
+  const { data: notes = [] } = useQuery({ queryKey: ['crm-all-notes'], queryFn: () => appServices.records.CRMNote.list('-created_date', 200) });
 
   const clients = users.filter(u => u.role !== 'admin');
   const enriched = clients.map(client => {

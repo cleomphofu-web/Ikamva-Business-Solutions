@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 
@@ -9,8 +8,8 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from "@/components/ui/button";
 
 export default function AdminDashboard() {
-  const { data: inquiries = [] } = useQuery({ queryKey: ['inquiries'], queryFn: () => db.entities.Inquiry.list('-created_date') });
-  const { data: subscribers = [] } = useQuery({ queryKey: ['subscribers'], queryFn: () => db.entities.Subscriber.list() });
+  const { data: inquiries = [] } = useQuery({ queryKey: ['inquiries'], queryFn: () => appServices.records.Inquiry.list('-created_date') });
+  const { data: subscribers = [] } = useQuery({ queryKey: ['subscribers'], queryFn: () => appServices.records.Subscriber.list() });
 
   const newCount = inquiries.filter(i => i.status === 'new').length;
   const convertedCount = inquiries.filter(i => i.status === 'converted').length;

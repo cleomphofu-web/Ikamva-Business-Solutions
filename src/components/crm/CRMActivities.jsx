@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -25,11 +24,11 @@ function TaskFormModal({ onClose }) {
   const qc = useQueryClient();
   const [form, setForm] = useState({ title: '', description: '', client_email: '', status: 'pending', priority: 'medium', category: 'other', due_date: '' });
 
-  const { data: users = [] } = useQuery({ queryKey: ['crm-users'], queryFn: () => db.entities.User.list() });
+  const { data: users = [] } = useQuery({ queryKey: ['crm-users'], queryFn: () => appServices.records.User.list() });
   const clients = users.filter(u => u.role !== 'admin');
 
   const create = useMutation({
-    mutationFn: data => db.entities.Task.create(data),
+    mutationFn: data => appServices.records.Task.create(data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['crm-all-tasks'] }); toast.success('Task created'); onClose(); },
   });
 
@@ -87,10 +86,10 @@ export default function CRMActivities() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showForm, setShowForm] = useState(false);
 
-  const { data: tasks = [], isLoading } = useQuery({ queryKey: ['crm-all-tasks'], queryFn: () => db.entities.Task.list() });
+  const { data: tasks = [], isLoading } = useQuery({ queryKey: ['crm-all-tasks'], queryFn: () => appServices.records.Task.list() });
 
   const updateTask = useMutation({
-    mutationFn: ({ id, data }) => db.entities.Task.update(id, data),
+    mutationFn: ({ id, data }) => appServices.records.Task.update(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['crm-all-tasks'] }),
   });
 

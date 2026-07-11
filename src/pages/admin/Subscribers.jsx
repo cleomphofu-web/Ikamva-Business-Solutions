@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -10,15 +9,15 @@ import { Trash2 } from 'lucide-react';
 
 export default function Subscribers() {
   const qc = useQueryClient();
-  const { data: subscribers = [] } = useQuery({ queryKey: ['subscribers'], queryFn: () => db.entities.Subscriber.list('-created_date') });
+  const { data: subscribers = [] } = useQuery({ queryKey: ['subscribers'], queryFn: () => appServices.records.Subscriber.list('-created_date') });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => db.entities.Subscriber.delete(id),
+    mutationFn: (id) => appServices.records.Subscriber.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['subscribers'] }),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => db.entities.Subscriber.update(id, data),
+    mutationFn: ({ id, data }) => appServices.records.Subscriber.update(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['subscribers'] }),
   });
 

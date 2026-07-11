@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -94,8 +93,8 @@ function DealModal({ deal, onClose }) {
 
   const save = useMutation({
     mutationFn: data => isEdit
-      ? db.entities.Project.update(data.id, data)
-      : db.entities.Project.create({ ...data, client_email: data.email || 'unknown@crm.com', status: 'not_started', type: 'project_based' }),
+      ? appServices.records.Project.update(data.id, data)
+      : appServices.records.Project.create({ ...data, client_email: data.email || 'unknown@crm.com', status: 'not_started', type: 'project_based' }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['crm-deals'] });
       toast.success(isEdit ? 'Deal updated' : 'Deal created');
@@ -175,16 +174,16 @@ export default function CRMDeals() {
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['crm-deals'],
-    queryFn: () => db.entities.Project.list('-created_date'),
+    queryFn: () => appServices.records.Project.list('-created_date'),
   });
 
   const updateStage = useMutation({
-    mutationFn: ({ id, stage }) => db.entities.Project.update(id, { stage }),
+    mutationFn: ({ id, stage }) => appServices.records.Project.update(id, { stage }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['crm-deals'] }),
   });
 
   const deleteDeal = useMutation({
-    mutationFn: id => db.entities.Project.delete(id),
+    mutationFn: id => appServices.records.Project.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['crm-deals'] }); toast.success('Deal removed'); },
   });
 

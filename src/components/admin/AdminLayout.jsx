@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import authService from '@/lib/auth-service';
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -43,7 +42,7 @@ export default function AdminLayout({ children }) {
         </nav>
         <div className="p-4 border-t border-border/50">
           <button
-            onClick={() => db.auth.logout('/')}
+            onClick={() => authService.signOut({ redirectTo: '/' })}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors w-full"
           >
             <LogOut className="w-4 h-4" />

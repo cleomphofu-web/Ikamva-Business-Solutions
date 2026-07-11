@@ -1,5 +1,4 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -19,8 +18,8 @@ export default function CRMEmails() {
   const qc = useQueryClient();
   const [showCompose, setShowCompose] = useState(false);
 
-  const { data: users = [] } = useQuery({ queryKey: ['crm-users'], queryFn: () => db.entities.User.list() });
-  const { data: leads = [] } = useQuery({ queryKey: ['crm-leads'], queryFn: () => db.entities.Inquiry.list('-created_date') });
+  const { data: users = [] } = useQuery({ queryKey: ['crm-users'], queryFn: () => appServices.records.User.list() });
+  const { data: leads = [] } = useQuery({ queryKey: ['crm-leads'], queryFn: () => appServices.records.Inquiry.list('-created_date') });
 
   const clients = users.filter(u => u.role !== 'admin');
   const recipients = [
@@ -94,7 +93,7 @@ function ComposeModal({ initialData, recipients, onClose }) {
   });
 
   const send = useMutation({
-    mutationFn: () => db.integrations.Core.SendEmail({
+    mutationFn: () => appServices.email.send({
       to: form.to,
       subject: form.subject,
       body: form.body.replace(/{{name}}/g, form.name || 'there'),
