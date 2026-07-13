@@ -16,11 +16,7 @@ export const AuthProvider = ({ children }) => {
     setAuthError(null);
 
     try {
-      let currentUser = await authService.getCurrentUser();
-
-      if (!currentUser) {
-        currentUser = await authService.signIn();
-      }
+      const currentUser = await authService.getCurrentUser();
 
       setUser(currentUser);
       setIsAuthenticated(Boolean(currentUser));
@@ -49,10 +45,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const navigateToLogin = async () => {
-    const currentUser = await authService.redirectToSignIn();
-    setUser(currentUser);
-    setIsAuthenticated(Boolean(currentUser));
-    setAuthError(null);
+    try {
+      const currentUser = await authService.redirectToSignIn();
+      setUser(currentUser);
+      setIsAuthenticated(Boolean(currentUser));
+      setAuthError(null);
+    } catch (error) {
+      setAuthError({
+        type: error.code || 'auth_unavailable',
+        message: error.message || 'Authentication backend is not configured yet.',
+      });
+    }
   };
 
   const checkAppState = checkUserAuth;

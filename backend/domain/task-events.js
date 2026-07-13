@@ -1,0 +1,34 @@
+export const TaskEvents = Object.freeze({
+  TASK_CREATED: 'TASK_CREATED',
+  VALIDATION_STARTED: 'VALIDATION_STARTED',
+  VALIDATION_COMPLETED: 'VALIDATION_COMPLETED',
+  QUOTA_APPROVED: 'QUOTA_APPROVED',
+  WORKER_STARTED: 'WORKER_STARTED',
+  AI_REQUESTED: 'AI_REQUESTED',
+  AI_COMPLETED: 'AI_COMPLETED',
+  RESULT_VALIDATED: 'RESULT_VALIDATED',
+  TASK_COMPLETED: 'TASK_COMPLETED',
+  TASK_FAILED: 'TASK_FAILED',
+  TASK_CANCELLED: 'TASK_CANCELLED',
+  TASK_RETRY_SCHEDULED: 'TASK_RETRY_SCHEDULED',
+  QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
+});
+
+export const TaskStatuses = Object.freeze({
+  PENDING: 'pending',
+  VALIDATING: 'validating',
+  WAITING_QUOTA: 'waiting_quota',
+  PROCESSING: 'processing',
+  AWAITING_HUMAN: 'awaiting_human',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+  CANCELLED: 'cancelled',
+  QUOTA_EXCEEDED: 'quota_exceeded',
+});
+
+export const TerminalTaskStatuses = new Set([
+  TaskStatuses.COMPLETED,
+  TaskStatuses.FAILED,
+  TaskStatuses.CANCELLED,
+  TaskStatuses.QUOTA_EXCEEDED,
+]);
