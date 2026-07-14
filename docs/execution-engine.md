@@ -52,6 +52,7 @@ Audit events are emitted by QueueService and WorkerEngine:
 - `RESULT_VALIDATED`
 - `TASK_COMPLETED`
 - `TASK_FAILED`
+- `TASK_DEAD_LETTERED`
 - `TASK_CANCELLED`
 - `TASK_RETRY_SCHEDULED`
 - `QUOTA_EXCEEDED`
