@@ -1,9 +1,9 @@
 import { TaskStatuses } from '../domain/task-events.js';
 
 export class InMemoryTaskQueueRepository {
-  constructor({ clock = () => new Date() } = {}) {
+  constructor({ clock = () => new Date(), store } = {}) {
     this.clock = clock;
-    this.tasks = new Map();
+    this.tasks = store || new Map();
   }
 
   async findById(id) {

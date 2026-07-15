@@ -39,6 +39,46 @@ export function defineQueueRepositoryContractTests(name, createHarness) {
       assert.equal(logs.at(-1).metadata.event_type, TaskEvents.TASK_CREATED);
     });
 
+    it('tenant-scoped repositories inject tenant context on create', async () => {
+      const { taskQueueRepository } = await createQueue();
+
+      const task = await taskQueueRepository.create(baseTask({
+        tenant_id: 'wrong-tenant',
+        idempotency_key: 'tenant-scope-create',
+      }));
+
+      assert.equal(task.tenant_id, 'tenant-1');
+    });
+
+    it('tenant-scoped repositories do not expose another tenant task by id', async () => {
+      const { repositoryFactory } = await createQueue();
+      const tenantRepos = repositoryFactory.forTenant('tenant-1');
+      const otherTenantRepos = repositoryFactory.forTenant('tenant-2');
+
+      const otherTask = await otherTenantRepos.taskQueue.create(baseTask({
+        idempotency_key: 'tenant-2-task',
+      }));
+
+      assert.equal(await tenantRepos.taskQueue.findById(otherTask.id), null);
+    });
+
+    it('unscoped repository factory construction fails', async () => {
+      const { repositoryFactory } = await createQueue();
+
+      assert.throws(() => repositoryFactory.forTenant(), /tenant context/i);
+      assert.throws(() => repositoryFactory.forTenant(''), /tenant context/i);
+    });
+
+    it('system repositories require explicit forSystem', async () => {
+      const { repositoryFactory } = await createQueue();
+      const systemRepos = repositoryFactory.forSystem();
+
+      assert.ok(systemRepos.taskQueue);
+      assert.ok(systemRepos.taskLogs);
+      assert.ok(systemRepos.sops);
+      assert.ok(systemRepos.tenants);
+    });
+
     it('duplicate idempotency keys return the existing task', async () => {
       const { queueService } = await createQueue();
 
@@ -136,6 +176,7 @@ export function defineQueueRepositoryContractTests(name, createHarness) {
       const { taskQueueRepository, tenantRepository } = await createHarness({
         clientProfiles: [{
           id: 'client-quota',
+          tenant_id: 'tenant-1',
           monthly_task_limit: 1,
           tasks_used_this_month: 1,
         }],
@@ -160,6 +201,7 @@ export function defineQueueRepositoryContractTests(name, createHarness) {
       const { tenantRepository } = await createHarness({
         clientProfiles: [{
           id: 'client-increment',
+          tenant_id: 'tenant-1',
           monthly_task_limit: 5,
           tasks_used_this_month: 2,
         }],

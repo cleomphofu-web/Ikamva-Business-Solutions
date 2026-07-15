@@ -56,6 +56,28 @@ Provider SDK
 
 This keeps Supabase, AI providers, email providers, and storage providers replaceable.
 
+## Dependency Flow
+
+Backend execution is composed through a small explicit service container.
+
+```text
+ServiceContainer
+  ↓
+RepositoryFactory.forTenant(tenantId)
+  ↓
+Tenant-scoped repositories
+  ↓
+Services
+  ↓
+WorkerEngine
+```
+
+`RepositoryFactory.forTenant(tenantId)` is the only normal way to create tenant-scoped repositories. The factory injects tenant context into repository methods so services do not need to remember tenant filters on every repository call.
+
+`RepositoryFactory.forSystem()` is reserved for controlled backend operations that intentionally require cross-tenant access, such as maintenance, migrations, telemetry, and administrative worker tasks. It must not be used by ordinary request or worker flows.
+
+The service container uses explicit registrations only. It does not use decorators, reflection, auto-wiring, or an external dependency injection framework.
+
 ## SOP Execution Flow
 
 1. A task is submitted with a tenant, task type, payload, and idempotency key.
