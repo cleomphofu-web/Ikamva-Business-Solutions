@@ -1,9 +1,5 @@
 import { defineQueueRepositoryContractTests } from './contracts/queueRepositoryContract.js';
-import {
-  InMemoryTaskLogRepository,
-  InMemoryTaskQueueRepository,
-  InMemoryTenantRepository,
-} from '../repositories/index.js';
+import { RepositoryFactory } from '../repositories/index.js';
 
 const fixedStart = new Date('2026-01-01T00:00:00.000Z');
 
@@ -14,11 +10,20 @@ const createClock = () => {
 
 defineQueueRepositoryContractTests('InMemoryTaskQueueRepository', async ({ clientProfiles = [] } = {}) => {
   const clock = createClock();
+  const repositoryFactory = new RepositoryFactory({
+    clock,
+    stores: {
+      clientProfiles,
+    },
+  });
+  const repos = repositoryFactory.forTenant('tenant-1');
 
   return {
     clock,
-    taskQueueRepository: new InMemoryTaskQueueRepository({ clock }),
-    taskLogRepository: new InMemoryTaskLogRepository({ clock }),
-    tenantRepository: new InMemoryTenantRepository(clientProfiles),
+    repositoryFactory,
+    repositories: repos,
+    taskQueueRepository: repos.taskQueue,
+    taskLogRepository: repos.taskLogs,
+    tenantRepository: repos.tenants,
   };
 });

@@ -1,6 +1,8 @@
 export class InMemoryTenantRepository {
   constructor(clientProfiles = []) {
-    this.clientProfiles = new Map(clientProfiles.map(profile => [profile.id, { ...profile }]));
+    this.clientProfiles = clientProfiles instanceof Map
+      ? clientProfiles
+      : new Map(clientProfiles.map(profile => [profile.id, { ...profile }]));
   }
 
   async findClientProfileById(id) {

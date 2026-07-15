@@ -1,7 +1,7 @@
 export class InMemoryTaskLogRepository {
-  constructor({ clock = () => new Date() } = {}) {
+  constructor({ clock = () => new Date(), store } = {}) {
     this.clock = clock;
-    this.logs = [];
+    this.logs = store || [];
   }
 
   async append(input) {
