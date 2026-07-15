@@ -87,6 +87,15 @@ export class QueueService {
     });
   }
 
+  async deadLetterTask(task, reason, options = {}) {
+    return this.transitionTask(task, TaskStatuses.FAILED, {
+      eventType: TaskEvents.TASK_DEAD_LETTERED,
+      message: reason || 'Task moved to dead letter',
+      metadata: { reason },
+      ...options,
+    });
+  }
+
   async cancelTask(task, reason, options = {}) {
     return this.transitionTask(task, TaskStatuses.CANCELLED, {
       eventType: TaskEvents.TASK_CANCELLED,
@@ -114,6 +123,14 @@ export class QueueService {
     });
 
     return updatedTask;
+  }
+
+  async retryOrDeadLetterTask(task, { maxRetries = 3, delaySeconds = 60, reason } = {}) {
+    if (Number(task.retry_count || 0) >= maxRetries) {
+      return this.deadLetterTask(task, reason || 'Maximum retry attempts exceeded');
+    }
+
+    return this.retryTask(task, { delaySeconds, reason });
   }
 }
 
