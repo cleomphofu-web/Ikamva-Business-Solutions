@@ -1,7 +1,4 @@
-import { InMemorySOPRepository } from './InMemorySOPRepository.js';
-import { InMemoryTaskLogRepository } from './InMemoryTaskLogRepository.js';
-import { InMemoryTaskQueueRepository } from './InMemoryTaskQueueRepository.js';
-import { InMemoryTenantRepository } from './InMemoryTenantRepository.js';
+import { createInMemoryRepositoryProvider } from './providers/InMemoryRepositoryProvider.js';
 
 export class MissingTenantContextError extends Error {
   constructor(message = 'RepositoryFactory.forTenant requires tenant context.') {
@@ -12,13 +9,18 @@ export class MissingTenantContextError extends Error {
 }
 
 export class RepositoryFactory {
-  constructor({ provider = 'memory', stores, clock = () => new Date() } = {}) {
-    if (provider !== 'memory') {
+  constructor({ provider = 'memory', providers, stores, clock = () => new Date() } = {}) {
+    const repositoryProviders = providers || {
+      memory: createInMemoryRepositoryProvider({ stores, clock }),
+    };
+    const selectedProvider = repositoryProviders[provider];
+
+    if (!selectedProvider?.createSystemRepositories) {
       throw new Error(`Repository provider "${provider}" is not registered.`);
     }
 
     this.clock = clock;
-    this.systemRepositories = createInMemorySystemRepositories({ stores, clock });
+    this.systemRepositories = selectedProvider.createSystemRepositories();
   }
 
   forTenant(tenantId) {
@@ -141,13 +143,6 @@ class TenantScopedTenantRepository {
     return this.repository.incrementTasksUsed(clientProfileId);
   }
 }
-
-const createInMemorySystemRepositories = ({ stores = {}, clock }) => ({
-  taskQueue: new InMemoryTaskQueueRepository({ clock, store: stores.taskQueue }),
-  taskLogs: new InMemoryTaskLogRepository({ clock, store: stores.taskLogs }),
-  sops: new InMemorySOPRepository(stores.sops || []),
-  tenants: new InMemoryTenantRepository(stores.clientProfiles || []),
-});
 
 const assertTenantId = tenantId => {
   if (!tenantId || typeof tenantId !== 'string') {

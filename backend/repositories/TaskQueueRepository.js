@@ -26,4 +26,12 @@ export class TaskQueueRepository {
   async scheduleRetry() {
     throw new Error('TaskQueueRepository.scheduleRetry requires a database provider implementation.');
   }
+
+  async recoverExpiredLocks() {
+    throw new Error('TaskQueueRepository.recoverExpiredLocks requires a database provider implementation.');
+  }
+
+  async getOperationalMetrics() {
+    throw new Error('TaskQueueRepository.getOperationalMetrics requires a database provider implementation.');
+  }
 }

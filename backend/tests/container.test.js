@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { RepositoryFactory } from '../repositories/index.js';
+import { RepositoryFactory, createInMemoryRepositoryProvider } from '../repositories/index.js';
 import { createExecutionContainer, createTenantExecutionContainer, ServiceContainer } from '../container/index.js';
 
 describe('ServiceContainer', () => {
@@ -50,5 +50,28 @@ describe('ServiceContainer', () => {
 
     assert.equal(task.tenant_id, 'tenant-1');
     assert.equal(completed.status, 'completed');
+  });
+
+  it('RepositoryFactory resolves implementations through provider configuration', async () => {
+    const repositoryFactory = new RepositoryFactory({
+      provider: 'configured-memory',
+      providers: {
+        'configured-memory': createInMemoryRepositoryProvider({
+          stores: {
+            clientProfiles: [{
+              id: 'client-configured',
+              tenant_id: 'tenant-1',
+              monthly_task_limit: 1,
+              tasks_used_this_month: 0,
+            }],
+          },
+        }),
+      },
+    });
+    const repos = repositoryFactory.forTenant('tenant-1');
+
+    const profile = await repos.tenants.findClientProfileById('client-configured');
+
+    assert.equal(profile.id, 'client-configured');
   });
 });
