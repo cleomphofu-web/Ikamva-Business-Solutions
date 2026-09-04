@@ -182,7 +182,7 @@ export default function CRMSettings() {
                 <div>
                   <label className="text-xs font-medium text-slate-600 mb-2 block">Accent Color</label>
                   <div className="flex gap-2">
-                    {['bg-emerald-700', 'bg-cyan-600', 'bg-lime-600', 'bg-emerald-600', 'bg-rose-600', 'bg-amber-500'].map((c, i) => (
+                    {['bg-indigo-600', 'bg-blue-600', 'bg-violet-600', 'bg-emerald-600', 'bg-rose-600', 'bg-amber-500'].map((c, i) => (
                       <button key={c} className={`w-8 h-8 rounded-full ${c} ${i === 0 ? 'ring-2 ring-offset-2 ring-indigo-600' : ''}`} />
                     ))}
                   </div>

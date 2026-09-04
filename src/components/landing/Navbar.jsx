@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from 'react-router-dom';
 
 import Logo from '@/components/landing/Logo';
 import { useAuth } from '@/lib/AuthContext';
-import GooeyNav from '@/components/GooeyNav';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -43,33 +41,32 @@ export default function Navbar() {
             <Logo height={38} />
           </a>
 
-          <div className="hidden md:block">
-            <GooeyNav items={links} colors={[1, 2, 3, 1, 2, 3]} />
+          <div className="hidden md:flex items-center gap-8">
+            {links.map(link => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {link.label}
+              </a>
+            ))}
           </div>
 
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated && (
-              <Link to="/dashboard">
+              <a href="/dashboard">
                 <Button variant="ghost" size="sm" className="text-sm font-medium gap-1.5">
                   <LayoutDashboard className="w-4 h-4" />
                   My Dashboard
                 </Button>
-              </Link>
+              </a>
             )}
-            {!isAuthenticated && (
-              <Link to="/signin">
-                <Button variant="ghost" size="sm" className="text-sm font-medium">
-                  Sign In
-                </Button>
-              </Link>
-            )}
-            {!isAuthenticated && (
-              <Link to="/signup">
-                <Button size="sm" className="text-sm font-medium rounded-full px-6">
-                  Get Started
-                </Button>
-              </Link>
-            )}
+            <a href="/contact">
+              <Button size="sm" className="text-sm font-medium rounded-full px-6">
+                Get Started
+              </Button>
+            </a>
           </div>
 
           <button
@@ -100,20 +97,9 @@ export default function Navbar() {
                   {link.label}
                 </a>
               ))}
-              {!isAuthenticated && (
-                <div className="pt-3">
-                  <Link to="/signin" onClick={() => setMobileOpen(false)}>
-                    <Button variant="ghost" size="sm" className="w-full rounded-full">
-                      Sign In
-                    </Button>
-                  </Link>
-                </div>
-              )}
-              {!isAuthenticated && (
-                <div className="pt-3">
-                  <Link to="/signup"><Button size="sm" className="w-full rounded-full">Get Started</Button></Link>
-                </div>
-              )}
+              <div className="pt-3">
+                <a href="/contact"><Button size="sm" className="w-full rounded-full">Get Started</Button></a>
+              </div>
             </div>
           </motion.div>
         )}

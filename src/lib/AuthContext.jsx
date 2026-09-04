@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const currentUser = await authService.getCurrentUser();
+
       setUser(currentUser);
       setIsAuthenticated(Boolean(currentUser));
     } catch (error) {
@@ -34,20 +35,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    // Initial check
     checkUserAuth();
-
-    // Subscribe to real-time auth state changes from Supabase
-    const unsubscribe = authService.onAuthStateChange((updatedUser) => {
-      setUser(updatedUser);
-      setIsAuthenticated(Boolean(updatedUser));
-      setIsLoadingAuth(false);
-      setAuthChecked(true);
-    });
-
-    return () => {
-      if (typeof unsubscribe === 'function') unsubscribe();
-    };
   }, []);
 
   const logout = async () => {
@@ -58,7 +46,10 @@ export const AuthProvider = ({ children }) => {
 
   const navigateToLogin = async () => {
     try {
-      await authService.redirectToSignIn();
+      const currentUser = await authService.redirectToSignIn();
+      setUser(currentUser);
+      setIsAuthenticated(Boolean(currentUser));
+      setAuthError(null);
     } catch (error) {
       setAuthError({
         type: error.code || 'auth_unavailable',

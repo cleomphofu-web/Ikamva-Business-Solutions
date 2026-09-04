@@ -68,29 +68,6 @@ export class InMemoryTaskQueueRepository {
   async scheduleRetry(id, patch) {
     return this.updateStatus(id, patch.status, patch);
   }
-
-  async recoverExpiredLocks({ timeoutMinutes = 10, tenantId, now = this.clock() } = {}) {
-    const cutoff = new Date(new Date(now).getTime() - timeoutMinutes * 60 * 1000);
-    const recovered = [];
-    for (const task of this.tasks.values()) {
-      if (task.status !== TaskStatuses.PROCESSING || (tenantId && task.tenant_id !== tenantId)) continue;
-      if (!task.locked_at || new Date(task.locked_at) >= cutoff) continue;
-      recovered.push(await this.updateStatus(task.id, TaskStatuses.PENDING, {
-        locked_at: null,
-        locked_by: null,
-      }));
-    }
-    return recovered;
-  }
-
-  async getOperationalMetrics({ tenantId } = {}) {
-    const counts = {};
-    for (const task of this.tasks.values()) {
-      if (tenantId && task.tenant_id !== tenantId) continue;
-      counts[task.status] = (counts[task.status] || 0) + 1;
-    }
-    return counts;
-  }
 }
 
 const cryptoRandomId = () => {

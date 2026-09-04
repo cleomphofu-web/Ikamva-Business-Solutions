@@ -1,25 +1,25 @@
-import { crmContactsApi, crmAccountsApi } from '@/lib/ikamva/api-client';
+import appServices from '@/lib/app-services';
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { Building2, Search } from 'lucide-react';
+import { Building2, Users, DollarSign, TrendingUp, ChevronRight, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 export default function CRMAccounts() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
 
-  const { data: contactResponse = { contacts: [] } } = useQuery({ queryKey: ['crm-contacts'], queryFn: () => crmContactsApi.list() });
-  const { data: operations = {} } = useQuery({ queryKey: ['crm-account-operations'], queryFn: () => crmAccountsApi.summary() });
-  const invoices = operations.invoices || [];
-  const projects = operations.projects || [];
+  const { data: users = [] } = useQuery({ queryKey: ['crm-users'], queryFn: () => appServices.records.User.list() });
+  const { data: services = [] } = useQuery({ queryKey: ['crm-all-services'], queryFn: () => appServices.records.ClientService.list() });
+  const { data: invoices = [] } = useQuery({ queryKey: ['crm-all-invoices'], queryFn: () => appServices.records.Invoice.list() });
+  const { data: projects = [] } = useQuery({ queryKey: ['crm-deals'], queryFn: () => appServices.records.Project.list() });
 
-  const clients = contactResponse.contacts || [];
+  const clients = users.filter(u => u.role !== 'admin');
 
   // Group by company
   const accounts = {};
   clients.forEach(c => {
-    const company = c.company || c.name?.split(' ').slice(-1)[0] + ' (Personal)' || 'Unassigned';
+    const company = c.company || c.full_name?.split(' ').slice(-1)[0] + ' (Personal)' || 'Unassigned';
     if (!accounts[company]) accounts[company] = { company, contacts: [], revenue: 0, outstanding: 0, projects: 0 };
     accounts[company].contacts.push(c);
     invoices.filter(i => i.client_email === c.email).forEach(i => {
@@ -119,10 +119,10 @@ export default function CRMAccounts() {
                   {selected.contacts.map(c => (
                     <div key={c.id} className="flex items-center gap-3 p-2 rounded-lg bg-slate-50">
                       <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span className="text-xs font-bold text-blue-600">{(c.name || c.email)[0].toUpperCase()}</span>
+                        <span className="text-xs font-bold text-blue-600">{(c.full_name || c.email)[0].toUpperCase()}</span>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-slate-800">{c.name || '—'}</p>
+                        <p className="text-sm font-medium text-slate-800">{c.full_name || '—'}</p>
                         <p className="text-xs text-slate-400">{c.email}</p>
                       </div>
                     </div>
