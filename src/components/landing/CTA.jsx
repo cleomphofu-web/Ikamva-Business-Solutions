@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from "framer-motion";
-import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
@@ -28,7 +27,7 @@ export default function CTA() {
 
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/signup">
+              <a href="/contact">
                 <Button
                   size="lg"
                   className="rounded-full px-8 text-base bg-white text-primary hover:bg-white/90 shadow-lg gap-2">
@@ -36,15 +35,15 @@ export default function CTA() {
                   Get Started
                   <ArrowRight className="w-4 h-4" />
                 </Button>
-              </Link>
-              <Link to="/contact">
+              </a>
+              <a href="/contact">
                 <Button
                   size="lg"
                   className="rounded-full px-8 text-base border border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 bg-transparent">
                   
                   Talk to Us
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </motion.div>

@@ -12,7 +12,7 @@ const STATUS_COLORS = {
   pending:   'bg-yellow-100 text-yellow-700',
   contacted: 'bg-blue-100 text-blue-700',
   converted: 'bg-green-100 text-green-700',
-  rewarded:  'bg-lime-100 text-lime-800',
+  rewarded:  'bg-violet-100 text-violet-700',
 };
 
 function EditModal({ referral, onClose, onSave, saving }) {
@@ -101,7 +101,7 @@ export default function AdminReferrals() {
         </div>
         <div className="bg-card rounded-2xl border border-border/50 p-5">
           <p className="text-sm text-muted-foreground mb-1">Rewards Issued</p>
-          <p className="text-3xl font-bold text-lime-700">R {totalRewarded.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-violet-600">R {totalRewarded.toLocaleString()}</p>
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/components/client/DashboardLayout';
-import { FolderKanban, CheckCircle2, Circle, Clock, CalendarDays, User } from 'lucide-react';
+import { FolderKanban, CheckCircle2, Circle, Clock, CalendarDays, User, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 
 const STATUS_CONFIG = {

@@ -10,7 +10,7 @@ import { format, isWithinInterval, subHours } from 'date-fns';
 
 const categoryColors = {
   report: 'bg-blue-100 text-blue-700',
-  proposal: 'bg-lime-100 text-lime-800',
+  proposal: 'bg-violet-100 text-violet-700',
   contract: 'bg-orange-100 text-orange-700',
   presentation: 'bg-pink-100 text-pink-700',
   other: 'bg-gray-100 text-gray-600',

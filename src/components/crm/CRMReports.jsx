@@ -2,12 +2,13 @@ import appServices from '@/lib/app-services';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
-import { TrendingUp, DollarSign, Users, FileText } from 'lucide-react';
+import { TrendingUp, DollarSign, CheckSquare, Users, FileText, Activity } from 'lucide-react';
 
-const COLORS = ['#65a30d', '#22c55e', '#f59e0b', '#ef4444', '#0f766e', '#06b6d4'];
+const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 export default function CRMReports() {
   const { data: tasks = [] } = useQuery({ queryKey: ['crm-all-tasks'], queryFn: () => appServices.records.Task.list() });
@@ -59,7 +60,7 @@ export default function CRMReports() {
     { label: 'Total Clients', value: clients.length, icon: Users, gradient: 'from-blue-500 to-blue-600', sub: 'Registered accounts' },
     { label: 'Revenue Collected', value: `R${totalRevenue.toLocaleString()}`, icon: DollarSign, gradient: 'from-emerald-500 to-emerald-600', sub: `${paidInvoices.length} paid invoices` },
     { label: 'Outstanding', value: `R${outstanding.toLocaleString()}`, icon: FileText, gradient: 'from-orange-500 to-orange-600', sub: 'Pending payments' },
-    { label: 'Lead Conversion', value: `${conversionRate}%`, icon: TrendingUp, gradient: 'from-lime-400 to-emerald-500', sub: `${convertedLeads} of ${leads.length} leads` },
+    { label: 'Lead Conversion', value: `${conversionRate}%`, icon: TrendingUp, gradient: 'from-violet-500 to-violet-600', sub: `${convertedLeads} of ${leads.length} leads` },
   ];
 
   return (

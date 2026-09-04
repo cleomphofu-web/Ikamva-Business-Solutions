@@ -3,7 +3,6 @@ export { InMemoryTaskLogRepository } from './InMemoryTaskLogRepository.js';
 export { InMemoryTaskQueueRepository } from './InMemoryTaskQueueRepository.js';
 export { InMemoryTenantRepository } from './InMemoryTenantRepository.js';
 export { MissingTenantContextError, RepositoryFactory, TenantScopedRepositories } from './RepositoryFactory.js';
-export { createInMemoryRepositoryProvider } from './providers/InMemoryRepositoryProvider.js';
 export { TaskLogRepository } from './TaskLogRepository.js';
 export { TaskQueueRepository } from './TaskQueueRepository.js';
 export { TenantRepository } from './TenantRepository.js';

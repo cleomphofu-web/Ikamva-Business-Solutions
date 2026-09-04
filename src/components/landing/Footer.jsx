@@ -17,8 +17,8 @@ const footerLinks = {
 
   Clients: [
   { label: 'Client Portal', href: '/dashboard' },
-  { label: 'Get Started', href: '/signup' },
-  { label: 'Refer a Friend', href: '/dashboard' },
+  { label: 'Get Started', href: '/onboarding' },
+  { label: 'Refer a Friend', href: '/dashboard/referrals' },
   { label: 'Submit Inquiry', href: '/contact' }],
 
   Legal: [

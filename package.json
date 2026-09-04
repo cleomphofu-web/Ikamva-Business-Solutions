@@ -4,26 +4,17 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "test": "npm run test:backend",
-    "dev": "vite --configLoader runner",
-    "build": "vite --configLoader runner build",
+    "dev": "vite",
+    "build": "vite build",
     "test:backend": "node --test \"backend/**/*.test.js\"",
-    "db:lint": "supabase db lint --local",
-    "db:integration": "npm run db:lint && npm run test:backend",
-    "db:migration:check": "node scripts/check-migration-history.mjs",
-    "worker": "node backend/workers/worker-process.js",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
-    "typecheck": "tsc -p ./tsconfig.core.json",
-    "typecheck:legacy": "tsc -p ./jsconfig.json",
-    "preview": "vite --configLoader runner preview"
+    "typecheck": "tsc -p ./jsconfig.json",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@fontsource/plus-jakarta-sans": "^5.2.8",
-    "@fontsource/space-grotesk": "^5.2.8",
     "@hello-pangea/dnd": "^17.0.0",
     "@hookform/resolvers": "^4.1.2",
-    "@napi-rs/canvas": "^1.0.8",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-alert-dialog": "^1.1.6",
     "@radix-ui/react-aspect-ratio": "^1.1.2",
@@ -51,10 +42,8 @@
     "@radix-ui/react-toggle": "^1.1.2",
     "@radix-ui/react-toggle-group": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.1.8",
-    "@react-three/fiber": "^9.7.0",
     "@stripe/react-stripe-js": "^3.0.0",
     "@stripe/stripe-js": "^5.2.0",
-    "@supabase/supabase-js": "^2.112.3",
     "@tanstack/react-query": "^5.84.1",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
@@ -68,15 +57,11 @@
     "jspdf": "^4.0.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.475.0",
-    "mammoth": "^1.12.2",
     "moment": "^2.30.1",
     "next-themes": "^0.4.4",
-    "ogl": "^1.0.11",
-    "openai": "^7.4.0",
-    "pdf-parse": "^2.4.5",
-    "react": "^19.2.8",
+    "react": "^18.2.0",
     "react-day-picker": "^8.10.1",
-    "react-dom": "^19.2.8",
+    "react-dom": "^18.2.0",
     "react-hook-form": "^7.54.2",
     "react-hot-toast": "^2.6.0",
     "react-leaflet": "^4.2.1",
@@ -88,10 +73,8 @@
     "sonner": "^2.0.1",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",
-    "tesseract.js": "^7.0.0",
-    "three": "^0.180.0",
+    "three": "^0.171.0",
     "vaul": "^1.1.2",
-    "xlsx": "^0.18.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -113,14 +96,5 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.2",
     "vite": "^6.1.0"
-  },
-  "overrides": {
-    "@hello-pangea/dnd": {
-      "react": "$react"
-    }
-  },
-  "allowScripts": {
-    "esbuild@0.25.12": true,
-    "core-js@3.49.0": true
   }
 }

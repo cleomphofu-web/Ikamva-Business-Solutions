@@ -124,7 +124,7 @@ export default function CRMUsers() {
                   <tr key={u.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-lime-400 flex items-center justify-center">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center">
                           <span className="text-xs font-bold text-white">{(u.full_name || u.email)[0].toUpperCase()}</span>
                         </div>
                         <div>
