@@ -1,0 +1,14 @@
+{
+  "extends": "./jsconfig.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "checkJs": false,
+    "noEmit": true
+  },
+  "include": [
+    "src/lib/ikamva/types.ts",
+    "src/lib/ikamva/workspace-adapter.ts",
+    "src/utils/index.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

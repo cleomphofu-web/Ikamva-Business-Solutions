@@ -1,0 +1,10 @@
+{
+  "name": "Ikamva Business Solutions",
+  "short_name": "Ikamva",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f8e8",
+  "theme_color": "#385a00",
+  "description": "Ikamva Business Solutions client and operations platform."
+}

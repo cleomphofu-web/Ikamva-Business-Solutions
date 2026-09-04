@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Sparkles, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import SpotlightCard from '@/components/SpotlightCard';
+import WarpText from '@/components/WarpText';
 
 function DemoModal({ onClose }) {
   return (
@@ -51,11 +54,11 @@ function DemoModal({ onClose }) {
                 </div>
               ))}
             </div>
-            <a href="/onboarding">
+            <Link to="/signup">
               <Button className="mt-2 rounded-full px-8 bg-white text-black hover:bg-white/90 gap-2">
                 Get Started Today <ArrowRight className="w-4 h-4" />
               </Button>
-            </a>
+            </Link>
           </div>
         </motion.div>
       </motion.div>
@@ -99,17 +102,19 @@ export default function Hero() {
               Let us handle the rest.
             </h1>
 
-            <p className="mt-6 text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Ikamva Virtual Admin Assist provides dependable remote administrative support to busy professionals, founders, and small businesses — without the cost of full-time staff.
-            </p>
+            <div className="mt-6 text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
+              <span className="inline-flex items-center align-middle"><WarpText text="Ikamva" className="inline-block h-[1.2em] min-h-0 w-[4.5em]" /></span> Virtual Admin Assist provides dependable remote administrative support to busy professionals, founders, and small businesses — without the cost of full-time staff.
+            </div>
 
             <div className="mt-10 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-              <a href="/onboarding">
+              <SpotlightCard className="rounded-full border-transparent bg-transparent p-0" spotlightColor="rgba(233, 231, 224, 0.32)">
+                <Link to="/signup">
                 <Button size="lg" className="rounded-full px-8 text-base gap-2 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all">
                   Start Free Trial
                   <ArrowRight className="w-4 h-4" />
                 </Button>
-              </a>
+                </Link>
+              </SpotlightCard>
               <Button variant="ghost" size="lg" onClick={() => setShowDemo(true)} className="rounded-full px-8 text-base gap-2 text-muted-foreground">
                 <div className="w-8 h-8 rounded-full bg-foreground/5 flex items-center justify-center">
                   <Play className="w-3.5 h-3.5 fill-current" />
@@ -120,7 +125,7 @@ export default function Hero() {
 
             <div className="mt-12 flex items-center gap-6 justify-center lg:justify-start">
               <div className="flex -space-x-2">
-                {['bg-violet-400', 'bg-blue-400', 'bg-emerald-400', 'bg-amber-400'].map((c, i) =>
+                {['bg-lime-400', 'bg-cyan-400', 'bg-emerald-400', 'bg-amber-400'].map((c, i) =>
                 <div key={i} className={`w-8 h-8 rounded-full ${c} border-2 border-background`} />
                 )}
               </div>
