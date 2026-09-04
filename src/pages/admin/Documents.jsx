@@ -10,7 +10,6 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import {
   Upload, Trash2, FileText, File, FileSpreadsheet, Presentation,
   Plus, Search, ExternalLink, Loader2,
@@ -22,7 +21,7 @@ const CATEGORIES = ['report', 'proposal', 'contract', 'presentation', 'other'];
 
 const categoryColors = {
   report: 'bg-blue-100 text-blue-700',
-  proposal: 'bg-violet-100 text-violet-700',
+  proposal: 'bg-lime-100 text-lime-800',
   contract: 'bg-orange-100 text-orange-700',
   presentation: 'bg-pink-100 text-pink-700',
   other: 'bg-gray-100 text-gray-600',

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 
 import {
-  LayoutDashboard, Users, Contact, Building2, TrendingUp, CheckSquare,
+  LayoutDashboard, Contact, Building2, TrendingUp, CheckSquare,
   Mail, BarChart3, Megaphone, Headphones, FolderOpen, UserCog,
-  Settings, ChevronLeft, ChevronRight, Bell, Search, Plus, HelpCircle,
-  LogOut, Menu, X, Zap, Calendar, ArrowLeft
+  Settings, ChevronLeft, ChevronRight, Bell, Search, Plus, HelpCircle, Menu, X, Zap, Calendar, ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,7 +69,7 @@ export default function CRMLayout({ activeModule, onModuleChange, children }) {
 
         {/* Brand */}
         <div className="flex items-center gap-2.5 mr-3">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-700 to-lime-500 flex items-center justify-center flex-shrink-0 shadow-sm">
             <span className="text-white text-xs font-bold tracking-tight">FS</span>
           </div>
           <div className="hidden sm:block">
@@ -128,7 +127,7 @@ export default function CRMLayout({ activeModule, onModuleChange, children }) {
             Admin
           </Link>
 
-          <button className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center ml-1 flex-shrink-0 shadow-sm">
+          <button className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-600 to-lime-400 flex items-center justify-center ml-1 flex-shrink-0 shadow-sm">
             <span className="text-white text-xs font-bold">A</span>
           </button>
         </div>

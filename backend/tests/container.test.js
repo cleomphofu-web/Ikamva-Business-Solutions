@@ -43,7 +43,7 @@ describe('ServiceContainer', () => {
     const task = await queueService.enqueueTask({
       client_profile_id: 'client-1',
       task_type: 'email',
-      payload: { subject: 'Hello' },
+      payload: { to: 'client@example.com', subject: 'Hello', text: 'Welcome to Ikamva.' },
       idempotency_key: 'container-task',
     });
     const completed = await workerEngine.processNext({ workerId: 'worker-1' });

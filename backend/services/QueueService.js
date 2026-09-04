@@ -51,7 +51,6 @@ export class QueueService {
   async transitionTask(task, status, { eventType, message, metadata = {}, createdBy = 'system' } = {}) {
     const previousStatus = task.status;
     const updatedTask = await this.taskQueueRepository.updateStatus(task.id, status, {
-      metadata,
       completed_at: status === TaskStatuses.COMPLETED ? this.clock().toISOString() : undefined,
       failed_at: status === TaskStatuses.FAILED ? this.clock().toISOString() : undefined,
     });

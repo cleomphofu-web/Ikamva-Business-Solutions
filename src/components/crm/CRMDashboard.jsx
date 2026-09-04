@@ -2,9 +2,8 @@ import appServices from '@/lib/app-services';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import {
-  TrendingUp, Users, CheckSquare, Clock, DollarSign, Activity,
-  ArrowUpRight, ArrowDownRight, Phone, Mail, Calendar, Zap, AlertCircle
+import { Users, CheckSquare, Clock, DollarSign, Activity,
+  ArrowUpRight, ArrowDownRight, Phone, Mail, Calendar, AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -77,7 +76,7 @@ export default function CRMDashboard({ onModuleChange }) {
 
   const NOTE_META = {
     call: { icon: Phone, cls: 'bg-blue-100 text-blue-600' },
-    email: { icon: Mail, cls: 'bg-purple-100 text-purple-600' },
+    email: { icon: Mail, cls: 'bg-teal-100 text-teal-700' },
     meeting: { icon: Calendar, cls: 'bg-green-100 text-green-600' },
     note: { icon: Activity, cls: 'bg-slate-100 text-slate-600' },
     follow_up: { icon: Clock, cls: 'bg-orange-100 text-orange-600' },
@@ -110,7 +109,7 @@ export default function CRMDashboard({ onModuleChange }) {
         <KPICard label="Outstanding" value={`R${outstanding.toLocaleString()}`} change={-5} icon={AlertCircle}
           gradient="bg-gradient-to-br from-orange-500 to-orange-600" sub="Across all accounts" />
         <KPICard label="Tasks Completed" value={`${taskCompletion}%`} change={8} icon={CheckSquare}
-          gradient="bg-gradient-to-br from-violet-500 to-violet-600" sub={`${completedTasks.length} of ${tasks.length} tasks`} />
+          gradient="bg-gradient-to-br from-lime-400 to-emerald-500" sub={`${completedTasks.length} of ${tasks.length} tasks`} />
       </div>
 
       <div className="grid xl:grid-cols-3 gap-4">
@@ -232,7 +231,7 @@ export default function CRMDashboard({ onModuleChange }) {
               {[
                 { label: 'Active Plans', val: activeServices.length, color: 'text-emerald-600' },
                 { label: 'Open Tasks', val: openTasks.length, color: 'text-blue-600' },
-                { label: 'Interactions', val: notes.length, color: 'text-violet-600' },
+                { label: 'Interactions', val: notes.length, color: 'text-lime-700' },
                 { label: 'Total Invoices', val: invoices.length, color: 'text-slate-700' },
               ].map(m => (
                 <div key={m.label} className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">

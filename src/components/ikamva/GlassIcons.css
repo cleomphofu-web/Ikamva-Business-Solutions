@@ -1,0 +1,73 @@
+.glass-icons-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.5rem;
+}
+
+.glass-icon-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+
+.glass-icon-wrapper:hover {
+  transform: translateY(-4px) scale(1.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.glass-icon-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.glass-icon-wrapper:hover .glass-icon-bg {
+  opacity: 1;
+}
+
+.glass-icon-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.glass-icon-svg {
+  color: var(--muted-foreground, #a1a1aa);
+  transition: color 0.3s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.glass-icon-wrapper:hover .glass-icon-svg {
+  color: var(--primary, #fff);
+  transform: scale(1.1);
+}
+
+.glass-icon-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--muted-foreground, #a1a1aa);
+  transition: color 0.3s ease;
+  white-space: nowrap;
+}
+
+.glass-icon-wrapper:hover .glass-icon-label {
+  color: var(--foreground, #fff);
+}

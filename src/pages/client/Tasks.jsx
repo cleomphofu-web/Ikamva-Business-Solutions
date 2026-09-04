@@ -3,9 +3,8 @@ import appServices from '@/lib/app-services';
 import React, { useEffect, useState } from 'react';
 
 import DashboardLayout from '@/components/client/DashboardLayout';
-import { CheckCircle2, Clock, Loader2, Circle, AlertCircle, Calendar, Upload, Download, Paperclip, X } from 'lucide-react';
+import { CheckCircle2, Loader2, Circle, AlertCircle, Calendar, Upload, Download, Paperclip } from 'lucide-react';
 import { format } from 'date-fns';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 const COLUMNS = [

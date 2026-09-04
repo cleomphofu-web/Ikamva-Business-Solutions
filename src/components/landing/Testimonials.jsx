@@ -8,7 +8,7 @@ const testimonials = [
     name: "Sarah Mitchell",
     role: "CEO, Bloom Studios",
     initials: "SM",
-    color: "bg-violet-100 text-violet-600"
+    color: "bg-lime-100 text-lime-800"
   },
   {
     quote: "The onboarding was incredibly smooth. Within a day, my VA understood my workflow better than most human assistants I've worked with.",

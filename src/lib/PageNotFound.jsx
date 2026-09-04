@@ -12,7 +12,7 @@ export default function PageNotFound({}) {
         queryFn: async () => {
             try {
                 const user = await authService.getCurrentUser();
-                return { user, isAuthenticated: true };
+                return { user, isAuthenticated: Boolean(user) };
             } catch (error) {
                 return { user: null, isAuthenticated: false };
             }
@@ -40,7 +40,7 @@ export default function PageNotFound({}) {
                     </div>
                     
                     {/* Admin Note */}
-                    {isFetched && authData.isAuthenticated && authData.user?.role === 'admin' && (
+                    {isFetched && authData.isAuthenticated && authData.user?.app_metadata?.role === 'admin' && (
                         <div className="mt-8 p-4 bg-slate-100 rounded-lg border border-slate-200">
                             <div className="flex items-start space-x-3">
                                 <div className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center mt-0.5">

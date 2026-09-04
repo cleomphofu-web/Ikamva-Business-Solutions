@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Wand2, Loader2, Plus, Trash2, Eye, BarChart3 } from 'lucide-react';
-import { format } from 'date-fns';
 import { toast } from 'sonner';
 
 const MONTHS = [

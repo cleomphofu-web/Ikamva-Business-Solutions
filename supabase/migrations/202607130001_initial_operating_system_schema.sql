@@ -1,5 +1,4 @@
 create extension if not exists pgcrypto;
-
 create table if not exists public.tenants (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -8,7 +7,6 @@ create table if not exists public.tenants (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-
 create table if not exists public.tenant_users (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
@@ -22,7 +20,6 @@ create table if not exists public.tenant_users (
   unique (tenant_id, user_id),
   unique (tenant_id, email)
 );
-
 create table if not exists public.client_profiles (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
@@ -40,7 +37,6 @@ create table if not exists public.client_profiles (
   check (billing_cycle_end >= billing_cycle_start),
   check (tasks_used_this_month <= monthly_task_limit)
 );
-
 create table if not exists public.client_sops (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
@@ -59,11 +55,9 @@ create table if not exists public.client_sops (
   updated_at timestamptz not null default now(),
   unique (tenant_id, task_type, version)
 );
-
 create unique index if not exists client_sops_one_active_per_task_type
 on public.client_sops (tenant_id, task_type)
 where active;
-
 create table if not exists public.task_queue (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
@@ -97,14 +91,11 @@ create table if not exists public.task_queue (
   failed_at timestamptz,
   unique (tenant_id, idempotency_key)
 );
-
 create index if not exists task_queue_claim_idx
 on public.task_queue (status, scheduled_for, priority, created_at)
 where status in ('pending', 'waiting_quota');
-
 create index if not exists task_queue_tenant_status_idx
 on public.task_queue (tenant_id, status, created_at desc);
-
 create table if not exists public.task_logs (
   id uuid primary key default gen_random_uuid(),
   task_id uuid not null references public.task_queue(id) on delete cascade,
@@ -116,10 +107,8 @@ create table if not exists public.task_logs (
   created_by text,
   created_at timestamptz not null default now()
 );
-
 create index if not exists task_logs_task_created_idx
 on public.task_logs (task_id, created_at);
-
 create or replace function public.set_updated_at()
 returns trigger as $$
 begin
@@ -127,32 +116,26 @@ begin
   return new;
 end;
 $$ language plpgsql;
-
 drop trigger if exists set_tenants_updated_at on public.tenants;
 create trigger set_tenants_updated_at
 before update on public.tenants
 for each row execute function public.set_updated_at();
-
 drop trigger if exists set_tenant_users_updated_at on public.tenant_users;
 create trigger set_tenant_users_updated_at
 before update on public.tenant_users
 for each row execute function public.set_updated_at();
-
 drop trigger if exists set_client_profiles_updated_at on public.client_profiles;
 create trigger set_client_profiles_updated_at
 before update on public.client_profiles
 for each row execute function public.set_updated_at();
-
 drop trigger if exists set_client_sops_updated_at on public.client_sops;
 create trigger set_client_sops_updated_at
 before update on public.client_sops
 for each row execute function public.set_updated_at();
-
 drop trigger if exists set_task_queue_updated_at on public.task_queue;
 create trigger set_task_queue_updated_at
 before update on public.task_queue
 for each row execute function public.set_updated_at();
-
 create or replace function public.log_task_status_transition()
 returns trigger as $$
 begin
@@ -178,24 +161,20 @@ begin
   return new;
 end;
 $$ language plpgsql;
-
 drop trigger if exists task_queue_status_log on public.task_queue;
 create trigger task_queue_status_log
 after insert or update of status on public.task_queue
 for each row execute function public.log_task_status_transition();
-
 create or replace function public.prevent_task_log_mutation()
 returns trigger as $$
 begin
   raise exception 'task_logs are immutable';
 end;
 $$ language plpgsql;
-
 drop trigger if exists task_logs_prevent_update on public.task_logs;
 create trigger task_logs_prevent_update
 before update on public.task_logs
 for each row execute function public.prevent_task_log_mutation();
-
 drop trigger if exists task_logs_prevent_delete on public.task_logs;
 create trigger task_logs_prevent_delete
 before delete on public.task_logs
