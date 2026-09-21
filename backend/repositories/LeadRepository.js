@@ -1,0 +1,1 @@
+export class LeadRepository { async list() { throw new Error('LeadRepository.list requires a provider implementation.'); } async upsert() { throw new Error('LeadRepository.upsert requires a provider implementation.'); } async delete() { throw new Error('LeadRepository.delete requires a provider implementation.'); } }

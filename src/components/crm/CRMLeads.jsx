@@ -1,10 +1,9 @@
-import appServices from '@/lib/app-services';
+import { crmLeadsApi } from '@/lib/ikamva/api-client';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
-  Plus, Search, X, Save, Loader2, ChevronRight, Star, TrendingUp,
-  Mail, Phone, Building2, Globe, Calendar, MoreHorizontal, Edit2, Trash2
+  Plus, Search, X, Save, Loader2, TrendingUp, Building2, Edit2, Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +12,7 @@ import { toast } from 'sonner';
 
 const LEAD_STATUSES = [
   { key: 'new', label: 'New', color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  { key: 'contacted', label: 'Contacted', color: 'bg-purple-100 text-purple-700 border-purple-200' },
+  { key: 'contacted', label: 'Contacted', color: 'bg-teal-100 text-teal-700 border-teal-200' },
   { key: 'qualified', label: 'Qualified', color: 'bg-amber-100 text-amber-700 border-amber-200' },
   { key: 'proposal', label: 'Proposal', color: 'bg-orange-100 text-orange-700 border-orange-200' },
   { key: 'converted', label: 'Converted', color: 'bg-green-100 text-green-700 border-green-200' },
@@ -37,9 +36,7 @@ function LeadModal({ lead, onClose }) {
   });
 
   const save = useMutation({
-    mutationFn: data => isEdit
-      ? appServices.records.Inquiry.update(data.id, data)
-      : appServices.records.Inquiry.create(data),
+    mutationFn: data => crmLeadsApi.upsert(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['crm-leads'] });
       toast.success(isEdit ? 'Lead updated' : 'Lead created');
@@ -156,16 +153,16 @@ export default function CRMLeads() {
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ['crm-leads'],
-    queryFn: () => appServices.records.Inquiry.list('-created_date'),
+    queryFn: async () => (await crmLeadsApi.list()).leads,
   });
 
   const updateLead = useMutation({
-    mutationFn: ({ id, data }) => appServices.records.Inquiry.update(id, data),
+    mutationFn: ({ id, data }) => crmLeadsApi.upsert({ ...data, id }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['crm-leads'] }); toast.success('Status updated'); },
   });
 
   const deleteLead = useMutation({
-    mutationFn: id => appServices.records.Inquiry.delete(id),
+    mutationFn: id => crmLeadsApi.remove(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['crm-leads'] }); toast.success('Lead removed'); },
   });
 

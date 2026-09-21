@@ -1,11 +1,10 @@
-import appServices from '@/lib/app-services';
+import { crmProjectsApi } from '@/lib/ikamva/api-client';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { Plus, X, Save, Loader2, DollarSign, Calendar, User, Zap, Edit2, Trash2 } from 'lucide-react';
+import { Plus, X, Save, Loader2, DollarSign, User, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { format } from 'date-fns';
 import { toast } from 'sonner';
 
 const STAGES = [
@@ -93,8 +92,8 @@ function DealModal({ deal, onClose }) {
 
   const save = useMutation({
     mutationFn: data => isEdit
-      ? appServices.records.Project.update(data.id, data)
-      : appServices.records.Project.create({ ...data, client_email: data.email || 'unknown@crm.com', status: 'not_started', type: 'project_based' }),
+      ? crmProjectsApi.update(data.id, data)
+      : crmProjectsApi.create({ ...data, client_email: data.email || 'unknown@crm.com', status: 'not_started' }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['crm-deals'] });
       toast.success(isEdit ? 'Deal updated' : 'Deal created');
@@ -174,16 +173,16 @@ export default function CRMDeals() {
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['crm-deals'],
-    queryFn: () => appServices.records.Project.list('-created_date'),
+    queryFn: async () => (await crmProjectsApi.list()).projects,
   });
 
   const updateStage = useMutation({
-    mutationFn: ({ id, stage }) => appServices.records.Project.update(id, { stage }),
+    mutationFn: ({ id, stage }) => crmProjectsApi.update(id, { stage }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['crm-deals'] }),
   });
 
   const deleteDeal = useMutation({
-    mutationFn: id => appServices.records.Project.delete(id),
+    mutationFn: id => crmProjectsApi.remove(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['crm-deals'] }); toast.success('Deal removed'); },
   });
 

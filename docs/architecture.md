@@ -129,3 +129,7 @@ flowchart TD
 ```
 
 Monthly reset is intentionally prepared at the service boundary and should be implemented in workers once billing and scheduling rules are finalized.
+
+## Repository Contract Specification
+
+Repository production guarantees are documented in [repository-contracts.md](repository-contracts.md). Every persistence implementation must satisfy those contracts and pass the shared repository contract test suite.

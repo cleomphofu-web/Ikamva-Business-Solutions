@@ -1,0 +1,4 @@
+.scroll-float-container {
+  will-change: transform, opacity, filter;
+  display: inline-block;
+}

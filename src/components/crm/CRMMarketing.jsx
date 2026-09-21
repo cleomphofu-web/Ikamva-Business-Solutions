@@ -132,7 +132,7 @@ export default function CRMMarketing() {
           { label: 'Total Campaigns', value: campaigns.length, icon: Megaphone, gradient: 'from-pink-500 to-rose-600' },
           { label: 'Total Budget', value: `R${totalBudget.toLocaleString()}`, icon: DollarSign, gradient: 'from-emerald-500 to-emerald-600' },
           { label: 'Leads Generated', value: totalLeads, icon: TrendingUp, gradient: 'from-blue-500 to-blue-600' },
-          { label: 'Subscribers', value: subscribers.filter(s => s.status === 'active').length, icon: Users, gradient: 'from-violet-500 to-violet-600' },
+          { label: 'Subscribers', value: subscribers.filter(s => s.status === 'active').length, icon: Users, gradient: 'from-lime-400 to-emerald-500' },
         ].map(k => (
           <div key={k.label} className="bg-white rounded-2xl border border-slate-200 p-5">
             <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${k.gradient} flex items-center justify-center mb-3`}>

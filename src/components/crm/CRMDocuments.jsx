@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 
 const CATEGORY_CONFIG = {
   report: { label: 'Report', color: 'bg-blue-100 text-blue-700' },
-  proposal: { label: 'Proposal', color: 'bg-violet-100 text-violet-700' },
+  proposal: { label: 'Proposal', color: 'bg-lime-100 text-lime-800' },
   contract: { label: 'Contract', color: 'bg-amber-100 text-amber-700' },
   presentation: { label: 'Presentation', color: 'bg-pink-100 text-pink-700' },
   other: { label: 'Other', color: 'bg-slate-100 text-slate-600' },

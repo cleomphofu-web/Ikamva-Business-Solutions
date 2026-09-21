@@ -6,13 +6,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/components/client/DashboardLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Gift, Users, CheckCircle2, Clock, Send, Star } from 'lucide-react';
+import { Gift, Users, CheckCircle2, Send, Star } from 'lucide-react';
 
 const STATUS_CONFIG = {
   pending:   { label: 'Pending',   color: 'bg-yellow-100 text-yellow-700' },
   contacted: { label: 'Contacted', color: 'bg-blue-100 text-blue-700' },
   converted: { label: 'Converted', color: 'bg-green-100 text-green-700' },
-  rewarded:  { label: 'Rewarded',  color: 'bg-violet-100 text-violet-700' },
+  rewarded:  { label: 'Rewarded',  color: 'bg-lime-100 text-lime-800' },
 };
 
 const empty = { referred_name: '', referred_email: '', referred_company: '', message: '' };

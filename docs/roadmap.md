@@ -33,28 +33,44 @@ Completed:
 
 Next:
 
-- Repository Factory.
-- Supabase repository adapters.
-- Integration tests against local Supabase.
-- Migration validation pipeline.
+- Repository Factory. *(completed)*
+- Supabase repository adapters. *(completed)*
+- Integration tests against local Supabase. *(completed)*
+- Migration validation pipeline. *(completed in this phase)*
 
-## Infrastructure
+## Infrastructure — current phase
 
-Planned:
+Completed:
 
-- Worker runtime.
-- Queue claiming and lock recovery.
-- Operational telemetry.
-- Error reporting.
-- Deployment environments.
-- Secrets management.
+- Repeatable local database lint and repository integration command (`npm run db:integration`).
+- Production worker runtime with graceful shutdown and lock-recovery checks.
+- Production worker container/configuration (`Dockerfile.worker`, `docs/deployment.md`).
+- Migration-history reconciliation gate (`npm run db:migration:check`).
+- Development-only deterministic email triage trigger, tenant-authenticated and queue-backed.
+- Local-only signup confirmation bypass flag; production keeps real Supabase confirmation.
+
+Remaining verification:
+
+- Operational telemetry and structured worker error reporting. *(completed)*
+- Deployment environments and secrets management. *(completed)*
+- Complete real Gmail OAuth consent for a test tenant and verify the approval/send audit trail against Gmail.
 
 ## Capabilities
 
-Planned:
+In progress:
 
-- Email capability.
-- CRM capability.
+- Email capability: provider contract, mock adapter, normalized email worker, and audited queue execution. *(first slice completed)*
+- CRM capability: tenant-scoped contact repository and service foundation. *(first slice completed)*
+- CRM API: authenticated tenant-scoped contact list and upsert endpoints. *(first slice completed)*
+- Frontend CRM API client methods for tenant-scoped contact list and upsert. *(first slice completed)*
+- CRM contact interaction notes repository, API, and drawer integration *(implemented; remote migration pending)*
+- CRM leads migration, tenant-scoped repository, API, and frontend integration *(implemented)*
+- CRM Accounts operations and Deals project repository/API integration *(implemented)*
+- Employee setup persistence, lifecycle activation, dynamic system prompts, and server-side skill-plan enforcement. *(implemented)*
+- Company Brain ingestion with tenant-scoped chunk persistence and embedding-backed retrieval. *(implemented)*
+
+Planned:
+- Live Gmail OAuth verification and production credential rotation.
 - Document capability.
 - Scheduling capability.
 - WhatsApp capability.
