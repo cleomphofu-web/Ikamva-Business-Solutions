@@ -7,7 +7,7 @@
     "test": "npm run test:backend",
     "dev": "vite --configLoader runner",
     "build": "vite --configLoader runner build",
-    "test:backend": "node --test",
+    "test:backend": "node scripts/run-tests.mjs",
     "db:lint": "supabase db lint --local",
     "db:integration": "npm run db:lint && npm run test:backend",
     "db:migration:check": "node scripts/check-migration-history.mjs",
