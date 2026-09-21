@@ -83,3 +83,63 @@ test('SupabaseTenantRepository: hashes incoming raw token with SHA-256 before qu
   const notFound = await repo.findByWebhookToken('wrong-token');
   assert.equal(notFound, null);
 });
+
+test('issueWebhookToken write path: generates random token and stores ONLY SHA-256 hash in DB', async () => {
+  let updatedTable = null;
+  let updatePayload = null;
+  let updateWhereId = null;
+
+  const mockSupabase = {
+    from(table) {
+      updatedTable = table;
+      return {
+        update(payload) {
+          updatePayload = payload;
+          return {
+            eq(col, val) {
+              updateWhereId = val;
+              return {
+                select() {
+                  return {
+                    async maybeSingle() {
+                      return { data: { id: val, webhook_token: payload.webhook_token }, error: null };
+                    },
+                  };
+                },
+              };
+            },
+          };
+        },
+      };
+    },
+  };
+
+  const repo = new SupabaseTenantRepository(mockSupabase);
+  const issued = await repo.issueWebhookToken('tenant-xyz');
+
+  assert.ok(issued.rawToken, 'Must return rawToken to caller once');
+  assert.equal(typeof issued.rawToken, 'string');
+  assert.equal(issued.rawToken.length, 64, 'Raw token should be 32 random bytes in hex (64 chars)');
+
+  const expectedHash = crypto.createHash('sha256').update(issued.rawToken).digest('hex');
+  assert.equal(issued.tokenHash, expectedHash);
+  assert.equal(updatedTable, 'tenants');
+  assert.equal(updateWhereId, 'tenant-xyz');
+  assert.equal(updatePayload.webhook_token, expectedHash, 'Database MUST receive the SHA-256 hash, NOT the raw secret');
+
+  // Also test InMemoryTenantRepository write path
+  const inMemoryRepo = new InMemoryTenantRepository([{ id: 'tenant-mem' }]);
+  const inMemIssued = await inMemoryRepo.issueWebhookToken('tenant-mem');
+  assert.ok(inMemIssued.rawToken);
+  assert.equal(inMemIssued.tokenHash, crypto.createHash('sha256').update(inMemIssued.rawToken).digest('hex'));
+
+  // Immediate read-back with raw token must succeed
+  const found = await inMemoryRepo.findByWebhookToken(inMemIssued.rawToken);
+  assert.ok(found);
+  assert.equal(found.id, 'tenant-mem');
+
+  // Attempting to query with the stored hash itself must fail (prevents hash reuse)
+  const hashLookup = await inMemoryRepo.findByWebhookToken(inMemIssued.tokenHash);
+  assert.equal(hashLookup, null, 'Lookup with hash directly must fail because findByWebhookToken hashes its input');
+});
+

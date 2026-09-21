@@ -25,6 +25,17 @@ export class InMemoryTenantRepository {
     }
     return null;
   }
+
+  async issueWebhookToken(tenantId) {
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const profile = this.clientProfiles.get(tenantId);
+    if (profile) {
+      profile.webhook_token = tokenHash;
+      this.clientProfiles.set(tenantId, profile);
+    }
+    return { rawToken, tokenHash };
+  }
   async consumeProviderCall(tenantId, limit = 1000) { this.usage ||= new Map(); const key = `${tenantId}:${new Date().toISOString().slice(0, 16)}`; const count = this.usage.get(key) || 0; if (count >= limit) return false; this.usage.set(key, count + 1); return true; }
 
   async incrementTasksUsed(clientProfileId) {

@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import supabaseAdmin from '../lib/supabase-admin.js';
 import {
   createApplicationInStore,
@@ -91,11 +92,14 @@ async function createTenantResources(application, reviewerId) {
 
   if (existingTenant.error) throw existingTenant.error;
 
+  const rawWebhookToken = crypto.randomBytes(32).toString('hex');
+  const webhookTokenHash = crypto.createHash('sha256').update(rawWebhookToken).digest('hex');
+
   const insertedTenant = existingTenant.data
     ? { data: existingTenant.data, error: null }
     : await supabaseAdmin
       .from('tenants')
-      .insert({ name: companyName, slug, status: 'active' })
+      .insert({ name: companyName, slug, status: 'active', webhook_token: webhookTokenHash })
       .select()
       .maybeSingle();
 

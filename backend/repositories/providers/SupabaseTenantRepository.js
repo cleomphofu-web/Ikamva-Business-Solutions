@@ -67,6 +67,19 @@ export class SupabaseTenantRepository {
     return null;
   }
 
+  async issueWebhookToken(tenantId) {
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const { data, error } = await this.db
+      .from('tenants')
+      .update({ webhook_token: tokenHash })
+      .eq('id', tenantId)
+      .select('id, webhook_token')
+      .maybeSingle();
+    if (error) throw error;
+    return { rawToken, tokenHash, tenant: data };
+  }
+
   async consumeProviderCall(tenantId, limit) { const { data, error } = await this.db.rpc('consume_tenant_provider_call', { p_tenant_id: tenantId, p_limit: limit }); if (error) throw error; return data === true; }
 
   async incrementTasksUsed(clientProfileId) {
