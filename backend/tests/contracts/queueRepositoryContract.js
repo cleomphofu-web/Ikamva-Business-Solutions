@@ -147,6 +147,34 @@ export function defineQueueRepositoryContractTests(name, createHarness) {
       assert.deepEqual(logs.at(-1).metadata.result, { ok: true });
     });
 
+    it('completion preserves result when caller also passes extra metadata fields (regression: WorkerEngine cost fields)', async () => {
+      // This is the exact call pattern used by WorkerEngine — it passes both the
+      // worker result and cost/token fields in separate metadata. Before the fix,
+      // the caller metadata would overwrite the result, causing the chat status
+      // endpoint to return "no response text was returned".
+      const { queueService, taskLogRepository } = await createQueue();
+
+      await queueService.enqueueTask(baseTask({ idempotency_key: 'complete-with-cost' }));
+      const claimed = await queueService.claimNextTask({ tenantId: 'tenant-1', workerId: 'worker-a' });
+      const workerResult = { provider: 'groq', output: { content: 'Hello, how can I help you?', status: 'completed' } };
+      const completed = await queueService.completeTask(claimed, workerResult, {
+        createdBy: 'worker-a',
+        metadata: {
+          estimated_cost_usd: 0.0001,
+          prompt_tokens: 120,
+          completion_tokens: 45,
+        },
+      });
+      const logs = await taskLogRepository.listByTaskId(completed.id);
+      const completionLog = [...logs].reverse().find(l => l.to_status === TaskStatuses.COMPLETED);
+
+      assert.ok(completionLog, 'completion log must exist');
+      assert.deepEqual(completionLog.metadata.result, workerResult, 'result must be present even when caller passes extra metadata');
+      assert.equal(completionLog.metadata.estimated_cost_usd, 0.0001, 'caller metadata fields must also be preserved');
+      assert.equal(completionLog.metadata.result.output.content, 'Hello, how can I help you?', 'output.content must be reachable via result.output.content');
+    });
+
+
     it('cancellation marks a task cancelled and records the reason', async () => {
       const { queueService, taskLogRepository } = await createQueue();
 

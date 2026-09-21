@@ -1,86 +1,202 @@
+@import "@fontsource/space-grotesk/latin-400.css";
+@import "@fontsource/space-grotesk/latin-500.css";
+@import "@fontsource/space-grotesk/latin-600.css";
+@import "@fontsource/plus-jakarta-sans/latin-400.css";
+@import "@fontsource/plus-jakarta-sans/latin-500.css";
+@import "@fontsource/plus-jakarta-sans/latin-600.css";
+@import "@fontsource/plus-jakarta-sans/latin-700.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+@keyframes ikamva-headline-crossfade {
+  0%, 26% { opacity: 1; transform: translateY(0); }
+  33%, 59% { opacity: 0; transform: translateY(-0.35em); }
+  66%, 92% { opacity: 0; transform: translateY(0.35em); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.hero-rotating-headline { display: inline-grid; min-width: 6.2ch; }
+.hero-rotating-headline > span { grid-area: 1 / 1; animation: ikamva-headline-crossfade 9s infinite; }
+.hero-rotating-headline > span:nth-child(2) { animation-delay: 3s; }
+.hero-rotating-headline > span:nth-child(3) { animation-delay: 6s; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-rotating-headline > span { animation: none; }
+  .hero-rotating-headline > span:not(:first-child) { display: none; }
+}
 
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+@layer base {
+  :root, .dark {
+    --background: #0a0a05;
+    --foreground: #fafaf9;
+    --card: rgba(5, 5, 10, 0.4);
+    --card-foreground: #fafaf9;
+    --popover: #05050a;
+    --popover-foreground: #fafaf9;
+    --primary: #fcfc03;
+    --primary-foreground: #0a0a05;
+    --secondary: #494920;
+    --secondary-foreground: #fafaf9;
+    --muted: #494920;
+    --muted-foreground: rgba(250, 250, 249, 0.6);
+    --accent: #fcfc03;
+    --accent-foreground: #0a0a05;
+    --destructive: #991b1b;
+    --destructive-foreground: #fafaf9;
+    --border: rgba(250, 250, 249, 0.1);
+    --input: rgba(250, 250, 249, 0.15);
+    --ring: #fcfc03;
+    --radius: 0.5rem;
+    --font-hero: "Sigmar", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "Inter", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+    /* Semantic states (migrated old primary orange to working/approval states) */
+    --state-idle: #888888;
+    --state-thinking: #60a5fa;
+    --state-working: #FC6F20;
+    --state-waiting: #eab308;
+    --state-approval: 21, 98%, 55%; /* Used in hsla() */
+    --state-paused: #a8a29e;
+    --state-failed: #ef4444;
   }
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
-    @apply bg-background text-foreground;
+    background:
+      radial-gradient(circle at 15% -10%, rgba(73, 73, 32, 0.24), transparent 32rem),
+      radial-gradient(circle at 85% 0%, rgba(252, 252, 3, 0.05), transparent 28rem),
+      var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: 0;
+  }
+
+  svg.lucide {
+    stroke-width: 1.5;
+  }
+}
+
+@layer utilities {
+  /* Brand text override requested for the light neutral surfaces. */
+  .text-white,
+  .text-white\/60,
+  .text-white\/62,
+  .text-white\/68,
+  .text-white\/70,
+  .text-white\/40,
+  .text-white\/55 {
+    color: #9D6638 !important;
+  }
+
+  .glass {
+    background: rgba(5, 5, 10, 0.4);
+    border: 1px solid rgba(250, 250, 249, 0.1);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+
+  .glass-panel {
+    background: rgba(5, 5, 10, 0.4);
+    border: 1px solid rgba(250, 250, 249, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+  }
+
+  .hover-scale {
+    transition: transform 0.2s ease-in-out;
+  }
+  .hover-scale:hover {
+    transform: scale(0.83);
+  }
+
+  .pill-radius {
+    border-radius: 107px !important;
+  }
+
+  .flex-1-container {
+    flex: 1;
+  }
+
+  .glass-strong {
+    background: rgba(5, 5, 10, 0.6);
+    border: 1px solid rgba(250, 250, 249, 0.15);
+    backdrop-filter: blur(16px);
+  }
+
+  .double-bezel {
+    @apply rounded-[2rem] bg-[#0a0a05]/45 p-1.5 ring-1 ring-[#fafaf9]/10;
+  }
+
+  .double-bezel-core {
+    @apply rounded-[1.625rem] bg-card/75 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] backdrop-blur-xl;
+  }
+
+  .glow-orb {
+    @apply pointer-events-none fixed rounded-full blur-3xl;
+  }
+
+  .grain {
+    position: relative;
+  }
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .text-balance-tight {
+    text-wrap: balance;
+  }
+
+  /* Hide scrollbars visually while preserving scroll behaviour */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE / Edge */
+    scrollbar-width: none;     /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;             /* Chrome / Safari / Opera */
+  }
+
+  /* Apply to all overflow-y-auto containers sitewide */
+  .overflow-y-auto {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .overflow-y-auto::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Prevent browser autofill from flashing a white/yellow background on dark inputs */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.08) inset !important;
+    -webkit-text-fill-color: #fafaf9 !important;
+    caret-color: #fcfc03 !important;
+    transition: background-color 9999s ease-in-out 0s;
+  }
+
+  /* Consistent placeholder colour on all inputs */
+  input::placeholder {
+    color: rgba(250, 250, 249, 0.3);
   }
 }

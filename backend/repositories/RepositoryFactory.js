@@ -1,7 +1,5 @@
-import { InMemorySOPRepository } from './InMemorySOPRepository.js';
-import { InMemoryTaskLogRepository } from './InMemoryTaskLogRepository.js';
-import { InMemoryTaskQueueRepository } from './InMemoryTaskQueueRepository.js';
-import { InMemoryTenantRepository } from './InMemoryTenantRepository.js';
+import { createInMemoryRepositoryProvider } from './providers/InMemoryRepositoryProvider.js';
+import { createSupabaseRepositoryProvider } from './providers/SupabaseRepositoryProvider.js';
 
 export class MissingTenantContextError extends Error {
   constructor(message = 'RepositoryFactory.forTenant requires tenant context.') {
@@ -12,13 +10,17 @@ export class MissingTenantContextError extends Error {
 }
 
 export class RepositoryFactory {
-  constructor({ provider = 'memory', stores, clock = () => new Date() } = {}) {
-    if (provider !== 'memory') {
+  constructor({ provider = 'memory', providers, stores, clock = () => new Date(), supabase } = {}) {
+    // Lazily build the default provider map only when needed.
+    const repositoryProviders = providers || buildProviders({ stores, clock, supabase });
+    const selectedProvider = repositoryProviders[provider];
+
+    if (!selectedProvider?.createSystemRepositories) {
       throw new Error(`Repository provider "${provider}" is not registered.`);
     }
 
     this.clock = clock;
-    this.systemRepositories = createInMemorySystemRepositories({ stores, clock });
+    this.systemRepositories = selectedProvider.createSystemRepositories();
   }
 
   forTenant(tenantId) {
@@ -36,6 +38,20 @@ export class RepositoryFactory {
   }
 }
 
+function buildProviders({ stores, clock, supabase }) {
+  const map = {
+    memory: createInMemoryRepositoryProvider({ stores, clock }),
+  };
+
+  // Only register the Supabase provider when a client is supplied.
+  // The execution container is responsible for passing it.
+  if (supabase) {
+    map.supabase = createSupabaseRepositoryProvider({ supabase });
+  }
+
+  return map;
+}
+
 export class TenantScopedRepositories {
   constructor({ tenantId, systemRepositories }) {
     assertTenantId(tenantId);
@@ -44,7 +60,101 @@ export class TenantScopedRepositories {
     this.taskLogs = new TenantScopedTaskLogRepository(tenantId, systemRepositories.taskLogs);
     this.sops = new TenantScopedSOPRepository(tenantId, systemRepositories.sops);
     this.tenants = new TenantScopedTenantRepository(tenantId, systemRepositories.tenants);
+    this.contacts = new TenantScopedContactRepository(tenantId, systemRepositories.contacts);
+    this.contactNotes = new TenantScopedContactNoteRepository(tenantId, systemRepositories.contactNotes);
+    this.leads = new TenantScopedLeadRepository(tenantId, systemRepositories.leads);
+    this.projects = new TenantScopedProjectRepository(tenantId, systemRepositories.projects);
+    this.employeeActivityLogs = new TenantScopedEmployeeActivityLogRepository(tenantId, systemRepositories.employeeActivityLogs);
+    this.employees = new TenantScopedEmployeeRepository(tenantId, systemRepositories.employees);
+    this.employeeMemory = new TenantScopedEmployeeMemoryRepository(tenantId, systemRepositories.employeeMemory);
+    this.companyKnowledge = new TenantScopedCompanyKnowledgeRepository(tenantId, systemRepositories.companyKnowledge);
+    this.approvals = new TenantScopedApprovalRepository(tenantId, systemRepositories.approvals);
+    this.tenantIntegrations = new TenantScopedIntegrationRepository(tenantId, systemRepositories.tenantIntegrations);
+    this.specialists = new TenantScopedSpecialistRepository(tenantId, systemRepositories.specialists);
   }
+}
+
+class TenantScopedSpecialistRepository {
+  constructor(tenantId, repository) { this.tenantId = tenantId; this.repository = repository; }
+  listByEmployee(employeeId) { return this.repository.listByEmployee(this.tenantId, employeeId); }
+  findByType(employeeId, specialistType) { return this.repository.findByType(this.tenantId, employeeId, specialistType); }
+  create(fields) { return this.repository.create(this.tenantId, fields); }
+  update(id, fields) { return this.repository.update(this.tenantId, id, fields); }
+  seedDefaults(employeeId, integrations = []) { return this.repository.seedDefaults(this.tenantId, employeeId, integrations); }
+}
+
+class TenantScopedEmployeeActivityLogRepository {
+  constructor(tenantId, repository) { this.tenantId = tenantId; this.repository = repository; }
+  append(input) { return this.repository.append({ ...input, tenant_id: this.tenantId }); }
+  list(options = {}) { return this.repository.list({ ...options, tenantId: this.tenantId }); }
+}
+class TenantScopedEmployeeRepository {
+  constructor(tenantId, repository) { this.tenantId = tenantId; this.repository = repository; }
+  findByTenant() { return this.repository.findByTenant(this.tenantId); }
+  findById(id) { return this.repository.findById(this.tenantId, id); }
+  create(fields) { return this.repository.create(this.tenantId, fields); }
+  update(id, fields) { return this.repository.update(this.tenantId, id, fields); }
+  activate(id) { return this.repository.activate(this.tenantId, id); }
+}
+class TenantScopedEmployeeMemoryRepository {
+  constructor(tenantId, repository) { this.tenantId = tenantId; this.repository = repository; }
+  listByEmployee(employeeId, options) { return this.repository.listByEmployee(this.tenantId, employeeId, options); }
+  create(input) { return this.repository.create(this.tenantId, input); }
+}
+class TenantScopedCompanyKnowledgeRepository {
+  constructor(tenantId, repository) { this.tenantId = tenantId; this.repository = repository; }
+  createChunks(chunks) { return this.repository.createChunks(this.tenantId, chunks); }
+  list(limit) { return this.repository.list(this.tenantId, limit); }
+  search(query, limit) { return this.repository.search(this.tenantId, query, limit); }
+  updateEmbedding(id, embedding) { return this.repository.updateEmbedding(this.tenantId, id, embedding); }
+  searchByEmbedding(embedding, limit) { return this.repository.searchByEmbedding(this.tenantId, embedding, limit); }
+  updateEmbedding(id, embedding) { return this.repository.updateEmbedding(this.tenantId, id, embedding); }
+  searchByEmbedding(embedding, limit) { return this.repository.searchByEmbedding(this.tenantId, embedding, limit); }
+}
+class TenantScopedApprovalRepository {
+  constructor(tenantId, repository) { this.tenantId = tenantId; this.repository = repository; }
+  list() { return this.repository.list(this.tenantId); }
+  create(input) { return this.repository.create({ ...input, tenant_id: this.tenantId }); }
+  findById(id) { return this.repository.findById(this.tenantId, id); }
+  findByTaskId(taskId) { return this.repository.findByTaskId(this.tenantId, taskId); }
+  updateStatus(id, status, reviewedBy, reviewNote) { return this.repository.updateStatus(this.tenantId, id, status, reviewedBy, reviewNote); }
+  updateActionPayload(id, actionPayload) { return this.repository.updateActionPayload(this.tenantId, id, actionPayload); }
+}
+
+class TenantScopedIntegrationRepository {
+  constructor(tenantId, repository) { this.tenantId = tenantId; this.repository = repository; }
+  list() { return this.repository.list(this.tenantId); }
+  findByProvider(provider) { return this.repository.findByProvider(this.tenantId, provider); }
+  upsert(fields) { return this.repository.upsert(this.tenantId, fields); }
+  disconnect(provider) { return this.repository.disconnect(this.tenantId, provider); }
+}
+
+class TenantScopedContactRepository {
+  constructor(tenantId, repository) { this.tenantId = tenantId; this.repository = repository; }
+  findById(id) { return this.repository.findById(id, this.tenantId); }
+  findByEmail(email) { return this.repository.findByEmail(email, this.tenantId); }
+  list() { return this.repository.list(this.tenantId); }
+  upsert(input) { return this.repository.upsert({ ...input, tenant_id: this.tenantId }); }
+}
+
+class TenantScopedContactNoteRepository {
+  constructor(tenantId, repository) { this.tenantId = tenantId; this.repository = repository; }
+  listByContact(contactId) { return this.repository.listByContact(contactId, this.tenantId); }
+  create(input) { return this.repository.create({ ...input, tenant_id: this.tenantId }); }
+  delete(id) { return this.repository.delete(id, this.tenantId); }
+}
+class TenantScopedLeadRepository {
+  constructor(tenantId, repository) { this.tenantId = tenantId; this.repository = repository; }
+  list() { return this.repository.list(this.tenantId); }
+  upsert(input) { return this.repository.upsert({ ...input, tenant_id: this.tenantId }); }
+  delete(id) { return this.repository.delete(id, this.tenantId); }
+}
+class TenantScopedProjectRepository {
+  constructor(tenantId, repository) { this.tenantId = tenantId; this.repository = repository; }
+  list() { return this.repository.list(this.tenantId); }
+  create(input) { return this.repository.create({ ...input, tenant_id: this.tenantId }); }
+  update(id, input) { return this.repository.update(id, this.tenantId, input); }
+  delete(id) { return this.repository.delete(id, this.tenantId); }
 }
 
 class TenantScopedTaskQueueRepository {
@@ -54,8 +164,15 @@ class TenantScopedTaskQueueRepository {
   }
 
   async findById(id) {
-    return onlyTenant(await this.repository.findById(id), this.tenantId);
+    return onlyTenant(await this.repository.findById(id, this.tenantId), this.tenantId);
   }
+  async updatePayload(id, payload) { return this.repository.updatePayload(id, this.tenantId, payload); }
+
+  async listByParentId(parentTaskId) {
+    return (await this.repository.listByParentId(parentTaskId, this.tenantId)).filter(task => task.tenant_id === this.tenantId);
+  }
+  async listByType(taskType) { return (await this.repository.listByType(taskType, this.tenantId)).filter(task => task.tenant_id === this.tenantId); }
+  async listRecent(limit = 100) { return this.repository.listRecent(this.tenantId, limit); }
 
   async findByIdempotencyKey(...args) {
     const idempotencyKey = args.length === 1 ? args[0] : args[1];
@@ -79,13 +196,21 @@ class TenantScopedTaskQueueRepository {
   async updateStatus(id, status, patch = {}) {
     const task = await this.findById(id);
     if (!task) return null;
-    return this.repository.updateStatus(id, status, patch);
+    return this.repository.updateStatus(id, status, { ...patch, tenantId: this.tenantId });
   }
 
   async scheduleRetry(id, patch) {
     const task = await this.findById(id);
     if (!task) return null;
-    return this.repository.scheduleRetry(id, patch);
+    return this.repository.scheduleRetry(id, { ...patch, tenantId: this.tenantId });
+  }
+
+  async recoverExpiredLocks(options = {}) {
+    return this.repository.recoverExpiredLocks({ ...options, tenantId: this.tenantId });
+  }
+
+  async getOperationalMetrics() {
+    return this.repository.getOperationalMetrics({ tenantId: this.tenantId });
   }
 }
 
@@ -123,9 +248,16 @@ class TenantScopedSOPRepository {
     const taskType = typeof input === 'string' ? input : input.taskType;
     return this.repository.findLatestVersion({ tenantId: this.tenantId, taskType });
   }
+
+  async ensureDefaultChat(input = {}) {
+    return this.repository.ensureDefaultChat({ ...input, tenantId: this.tenantId });
+  }
+  async ensureDefaultEmailWorkflow(input = {}) { return this.repository.ensureDefaultEmailWorkflow({ ...input, tenantId: this.tenantId }); }
+  async ensureDefaultShiftStart(input = {}) { return this.repository.ensureDefaultShiftStart({ ...input, tenantId: this.tenantId }); }
 }
 
 class TenantScopedTenantRepository {
+
   constructor(tenantId, repository) {
     this.tenantId = tenantId;
     this.repository = repository;
@@ -141,13 +273,6 @@ class TenantScopedTenantRepository {
     return this.repository.incrementTasksUsed(clientProfileId);
   }
 }
-
-const createInMemorySystemRepositories = ({ stores = {}, clock }) => ({
-  taskQueue: new InMemoryTaskQueueRepository({ clock, store: stores.taskQueue }),
-  taskLogs: new InMemoryTaskLogRepository({ clock, store: stores.taskLogs }),
-  sops: new InMemorySOPRepository(stores.sops || []),
-  tenants: new InMemoryTenantRepository(stores.clientProfiles || []),
-});
 
 const assertTenantId = tenantId => {
   if (!tenantId || typeof tenantId !== 'string') {

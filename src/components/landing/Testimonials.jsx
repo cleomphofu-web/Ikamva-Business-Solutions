@@ -4,7 +4,7 @@ import { Star } from "lucide-react";
 
 const testimonials = [
   {
-    quote: "Fullscope gave me back 15 hours a week. My VA handles everything from email triage to travel booking. It's like having a superpower.",
+    quote: "Ikamva gave me back 15 hours a week. My VA handles everything from email triage to travel booking. It's like having a superpower.",
     name: "Sarah Mitchell",
     role: "CEO, Bloom Studios",
     initials: "SM",
@@ -18,7 +18,7 @@ const testimonials = [
     color: "bg-blue-100 text-blue-600"
   },
   {
-    quote: "I was skeptical at first, but Fullscope's assistants are genuinely world-class. The research reports alone have been game-changing for our team.",
+    quote: "I was skeptical at first, but Ikamva's assistants are genuinely world-class. The research reports alone have been game-changing for our team.",
     name: "Emily Rodriguez",
     role: "Creative Director, Pixel & Co",
     initials: "ER",

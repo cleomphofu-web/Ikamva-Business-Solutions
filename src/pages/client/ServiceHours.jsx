@@ -1,5 +1,5 @@
 import authService from '@/lib/auth-service';
-import appServices from '@/lib/app-services';
+import { accountOpsApi } from '@/lib/ikamva/api-client';
 import React, { useEffect, useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
@@ -29,7 +29,7 @@ export default function ServiceHours() {
 
   const { data: services = [], isLoading } = useQuery({
     queryKey: ['client-services', user?.email],
-    queryFn: () => appServices.records.ClientService.filter({ client_email: user.email }),
+    queryFn: async () => (await accountOpsApi.summary()).services?.filter(service => service.client_email === user.email) || [],
     enabled: !!user?.email,
   });
 

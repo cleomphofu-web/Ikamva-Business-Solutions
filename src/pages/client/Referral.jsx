@@ -70,7 +70,7 @@ export default function Referral() {
           </div>
           <div>
             <p className="text-2xl font-bold">Earn R500 per referral</p>
-            <p className="text-primary-foreground/75 text-sm mt-1">Share Fullscope with your network. When they sign up for a paid plan, you get R500 account credit — no limits.</p>
+            <p className="text-primary-foreground/75 text-sm mt-1">Share Ikamva with your network. When they sign up for a paid plan, you get R500 account credit — no limits.</p>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-4 text-center flex-shrink-0">
@@ -122,7 +122,7 @@ export default function Referral() {
                 rows={3}
                 value={form.message}
                 onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
-                placeholder="Why you think they'd benefit from Fullscope..."
+                placeholder="Why you think they'd benefit from Ikamva..."
               />
             </div>
             <Button type="submit" className="w-full gap-2" disabled={createMut.isPending || !form.referred_name || !form.referred_email}>
