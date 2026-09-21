@@ -72,7 +72,7 @@ function ToolsPage() {
                 <Button
                   variant={t.status === "connected" ? "outline" : "default"}
                   className="mt-6 self-start"
-                  disabled={connecting}
+                  disabled={connecting || (t.status !== "connected" && t.provider !== "gmail")}
                   onClick={() => void connect(name, t.provider, t.status === "connected")}
                 >
                   {t.status === "connected" ? (t.provider === "gmail" ? "Disconnect" : "Manage") : t.provider === "gmail" ? "Connect Gmail" : "Coming soon"}

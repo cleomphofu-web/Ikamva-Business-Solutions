@@ -87,10 +87,10 @@ export const workforceApi = {
    * @param {{ task_type?: string, idempotency_key?: string, signal?: AbortSignal }} options
    * @returns {{ task_id: string, status: string, result: object }}
    */
-  async sendMessage(message, { task_type = 'chat', idempotency_key, signal } = {}) {
+  async sendMessage(message, { task_type = 'chat', attachments = [], idempotency_key, signal } = {}) {
     return request(task_type === 'chat' ? '/workforce/chat' : '/workforce/tasks', {
       method: 'POST',
-      body: { message, task_type, idempotency_key: idempotency_key || (task_type === 'chat' ? crypto.randomUUID() : undefined) },
+      body: { message, task_type, attachments, idempotency_key: idempotency_key || (task_type === 'chat' ? crypto.randomUUID() : undefined) },
       signal,
     });
   },

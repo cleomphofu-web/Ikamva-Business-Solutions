@@ -89,7 +89,7 @@ export async function handleTaskSubmit(req, res) {
     return sendError(res, 400, 'Invalid JSON body');
   }
 
-  const { message, task_type = 'chat' } = body ?? {};
+  const { message, task_type = 'chat', attachments = [] } = body ?? {};
 
   if (!message || typeof message !== 'string' || !message.trim()) {
     return sendError(res, 400, 'Request body must include a non-empty "message" string');
@@ -103,7 +103,7 @@ export async function handleTaskSubmit(req, res) {
   const tenantId = tenantUser.tenant_id;
   const idempotencyKey = body.idempotency_key || crypto
     .createHash('sha256')
-    .update(`${user.id}:${task_type}:${message.trim()}`)
+    .update(`${user.id}:${task_type}:${message.trim()}:${JSON.stringify(attachments)}`)
     .digest('hex');
 
   // 4. Enqueue task
@@ -122,7 +122,7 @@ export async function handleTaskSubmit(req, res) {
       task_type,
       client_profile_id: clientProfile.id,
       idempotency_key: idempotencyKey,
-      payload: { message: message.trim() },
+      payload: { message: message.trim(), attachments: Array.isArray(attachments) ? attachments : [] },
     });
   } catch (enqueueError) {
     console.error('Failed to enqueue task:', enqueueError);

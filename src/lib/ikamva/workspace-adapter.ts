@@ -289,9 +289,9 @@ export const schedule = {
  */
 import { workforceApi } from './api-client';
 
-export async function sendToEmployee(message: string) {
+export async function sendToEmployee(message: string, attachments: any[] = []) {
   try {
-    const response = await workforceApi.sendMessage(message);
+    const response = await workforceApi.sendMessage(message, { attachments });
     let status = await workforceApi.getChatStatus(response.task_id);
     while (["pending", "processing", "validating", "waiting_quota"].includes(status.status)) {
       await new Promise(resolve => setTimeout(resolve, 2000));

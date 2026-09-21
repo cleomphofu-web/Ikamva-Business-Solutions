@@ -683,8 +683,16 @@ export class WorkerEngine {
       }
     }
 
-    return { prompt, knowledgeChunksFound };
+    // ── File Attachments Grounding for chat/tasks ───────────────
+    if (Array.isArray(payload?.attachments) && payload.attachments.length > 0) {
+      prompt += `\n\nATTACHED USER DOCUMENTS / FILES:\n`;
+      payload.attachments.forEach((att, idx) => {
+        prompt += `\n--- Attachment ${idx + 1}: ${att.name || att.title || 'file'} ---\n${att.content || att.text || '(empty content)'}\n`;
+      });
+      prompt += `\nIMPORTANT: Use the attached documents above to answer the user's questions or perform the requested action.`;
+    }
 
+    return { prompt, knowledgeChunksFound };
   }
 
   // ── Post-approval resume ─────────────────────────────────────────────────
