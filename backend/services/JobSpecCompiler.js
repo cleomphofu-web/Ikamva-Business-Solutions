@@ -102,11 +102,8 @@ export class JobSpecCompiler {
     const knowledgeSources = Array.isArray(input.knowledge_sources)
       ? [...input.knowledge_sources]
       : [];
-    if (knowledgeSources.length === 0) {
-      if (/pricing|rate|catalog/i.test(text)) knowledgeSources.push('pricing_sheet.xlsx');
-      if (/faq|handbook|policy|guidelines/i.test(text)) knowledgeSources.push('company_faq.pdf');
-      if (/product|specs|documentation/i.test(text)) knowledgeSources.push('product_catalog.pdf');
-    }
+    // Note: Do not fabricate hardcoded guessed filenames like 'pricing_sheet.xlsx' when none are explicitly provided.
+    // Leaving knowledgeSources empty enables WorkerEngine to ground on all active company knowledge for the tenant.
 
     const documentTemplates = Array.isArray(input.document_templates)
       ? [...input.document_templates]

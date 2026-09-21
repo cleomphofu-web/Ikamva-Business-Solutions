@@ -19,7 +19,7 @@ test('JobSpecCompiler compiles natural language description into structured job 
     { when: "category == 'quote_request'", then: 'generate_quote_document' },
   ]);
 
-  assert.ok(spec.knowledge_sources.includes('pricing_sheet.xlsx'));
+  assert.deepEqual(spec.knowledge_sources, [], 'Should not invent fictional filenames when none explicitly provided');
   assert.equal(spec.schedule.timezone, 'Africa/Johannesburg');
   assert.equal(spec.task_quota.pack_size, 100);
   assert.equal(spec.task_quota.auto_pause_on_exhaustion, true);
@@ -27,7 +27,8 @@ test('JobSpecCompiler compiles natural language description into structured job 
 
 test('JobSpecCompiler dynamically compiles completely different domain description (Outlook + Salesforce + Calendar + 500 quota)', () => {
   const customSpec = JobSpecCompiler.compile({
-    description: 'Handle customer support in Outlook, manage Salesforce deals, schedule booking appointments on Microsoft calendar, and export weekly Excel data reports from company handbook. Work 08:00 to 16:00 in UTC with 500 pack limit.',
+    description: 'Handle customer support in Outlook, manage Salesforce deals, schedule booking appointments on Microsoft calendar, and export weekly Excel data reports. Work 08:00 to 16:00 in UTC with 500 pack limit.',
+    knowledge_sources: ['company_handbook.pdf'],
   });
 
   assert.ok(customSpec.capabilities.includes('read_respond_email'));
@@ -48,7 +49,7 @@ test('JobSpecCompiler dynamically compiles completely different domain descripti
     { when: "category == 'report_request'", then: 'export_data_summary' },
   ]);
 
-  assert.ok(customSpec.knowledge_sources.includes('company_faq.pdf'));
+  assert.deepEqual(customSpec.knowledge_sources, ['company_handbook.pdf']);
   assert.equal(customSpec.schedule.start, '08:00');
   assert.equal(customSpec.schedule.end, '16:00');
   assert.equal(customSpec.schedule.timezone, 'UTC');
