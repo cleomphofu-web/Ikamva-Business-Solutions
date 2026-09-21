@@ -11,7 +11,7 @@ const json = (res, statusCode, payload) => {
   res.end(JSON.stringify(payload));
 };
 
-const getRequestPath = req => new URL(req.url ?? '/', 'http://localhost').pathname;
+const getRequestPath = req => new URL(req.url ?? '/', 'http://127.0.0.1').pathname;
 
 const getBearerToken = req => (req.headers['authorization'] ?? '').replace(/^Bearer\s+/i, '').trim();
 
@@ -197,7 +197,7 @@ export async function handleApplicationsRequest(req, res) {
       return json(res, error.status || 401, { error: error.message || 'Unauthorized' });
     }
 
-    const url = new URL(req.url ?? '/', 'http://localhost');
+    const url = new URL(req.url ?? '/', 'http://127.0.0.1');
     const status = url.searchParams.get('status');
 
     const { records, error } = await listApplicationsFromStore({

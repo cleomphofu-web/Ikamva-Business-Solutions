@@ -80,8 +80,12 @@ function Onboarding() {
   const [saved, setSaved] = useState(false);
   const [connectingTool, setConnectingTool] = useState("");
   const [connectedProviders, setConnectedProviders] = useState<string[]>([]);
+  const [integrationStatus, setIntegrationStatus] = useState<Record<string, any>>({});
   const [saveError, setSaveError] = useState("");
   const [activating, setActivating] = useState(false);
+  const [fastTrackIntent, setFastTrackIntent] = useState("");
+  const [intentSuggestion, setIntentSuggestion] = useState<any>(null);
+  const [parsingIntent, setParsingIntent] = useState(false);
   const [documentStatus, setDocumentStatus] = useState<Record<string, string>>({});
   const [pastedDocuments, setPastedDocuments] = useState<Record<string, string>>({});
   const relevantSkills = skills.filter((skill) => {
@@ -122,6 +126,20 @@ function Onboarding() {
     }
   }
 
+  async function refreshIntegrationStatus() {
+    const { integrations = [] } = await workforceApi.getIntegrationStatus();
+    setIntegrationStatus(Object.fromEntries(integrations.map((item: any) => [item.provider, item])));
+    setConnectedProviders(integrations.filter((item: any) => item.status === "connected").map((item: any) => item.provider));
+  }
+
+  async function disconnectTool(toolId: string) {
+    if (toolId !== "gmail") return;
+    setConnectingTool(toolId); setSaveError("");
+    try { await workforceApi.disconnectGmail(); await refreshIntegrationStatus(); toast.success("Gmail disconnected."); }
+    catch (error: any) { setSaveError(error?.message || "Unable to disconnect Gmail."); }
+    finally { setConnectingTool(""); }
+  }
+
   const canContinue = step !== 0 || (name.trim().length > 1 && role.trim().length > 1);
   const current = STEPS[step]!;
 
@@ -151,9 +169,7 @@ function Onboarding() {
 
   useEffect(() => {
     if (step !== 4) return;
-    void workforceApi.listIntegrations().then(({ integrations }) => {
-      setConnectedProviders((integrations || []).filter((item: any) => item.status === "connected").map((item: any) => item.provider));
-    }).catch(() => setConnectedProviders([]));
+    void refreshIntegrationStatus().catch(() => { setConnectedProviders([]); setIntegrationStatus({}); });
   }, [step]);
 
   function fieldsForStep() {
@@ -247,6 +263,27 @@ function Onboarding() {
           <div className="mt-9 flex flex-col gap-6">
             {step === 0 && (
               <>
+                <section className="rounded-3xl border border-primary/20 bg-primary/5 p-5">
+                  <p className="text-sm font-semibold">Want a faster start?</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Describe the work you want your Employee to handle and we’ll suggest a role, personality, skills, and integrations.</p>
+                  <Textarea value={fastTrackIntent} onChange={(event) => setFastTrackIntent(event.target.value)} placeholder="e.g. Handle customer quote requests and draft replies" rows={3} className="mt-3 resize-none rounded-2xl bg-transparent" />
+                  <div className="mt-3 flex items-center gap-3">
+                    <Button type="button" variant="outline" disabled={!fastTrackIntent.trim() || parsingIntent} onClick={async () => {
+                      setParsingIntent(true);
+                      try {
+                        const suggestion = await employeeApi.parseIntent(fastTrackIntent.trim());
+                        setIntentSuggestion(suggestion);
+                        if (suggestion.role_hint) setRole(suggestion.role_hint);
+                        if (suggestion.personality_hint) setPersonality(suggestion.personality_hint);
+                        const industryMap: Record<string, string> = { retail: "Retail & E-commerce", healthcare: "Healthcare & Wellness", professional_services: "Professional Services" };
+                        if (industryMap[suggestion.industry_hint]) setIndustry(industryMap[suggestion.industry_hint]);
+                        setSelectedSkills(current => [...new Set([...current, ...(suggestion.skills || [])])]);
+                      } catch (error: any) { toast.error(error?.message || "Unable to interpret that description."); }
+                      finally { setParsingIntent(false); }
+                    }}>{parsingIntent ? "Thinking…" : "Suggest setup"}</Button>
+                    {intentSuggestion && <span className="text-xs text-primary" role="status">Suggestions applied. You can edit them below.</span>}
+                  </div>
+                </section>
                 <div className="flex items-center gap-5">
                   <EmployeeOrb state="idle" initials={name[0] ?? "S"} size={88} />
                   <p className="min-w-0 text-sm text-muted-foreground">
@@ -309,7 +346,7 @@ function Onboarding() {
                 {["Company Fact Sheet", "Customer FAQ", "Brand Voice Guide", ...(industry === "Retail & E-commerce" ? ["Product Catalogue / Price List", "Returns & Refunds Policy", "Shipping & Delivery Policy"] : industry === "Professional Services" ? ["Service Catalogue", "Intake Form Template", "Legal & Compliance Notes"] : ["Service and product specifications", "Escalation and operating policy"])].map((doc) => (
                   <div key={doc} className="glass flex flex-col gap-3 rounded-2xl p-4"><div><strong>{doc}</strong><p className="mt-1 text-sm text-muted-foreground">Give your Employee the facts and guidance they need to answer accurately.</p>{documentStatus[String(doc)] && <p className="mt-2 text-xs text-primary" role="status">{documentStatus[String(doc)]}</p>}</div><div className="flex flex-wrap gap-2"><label className="cursor-pointer rounded-xl border border-border px-3 py-2 text-sm"><UploadCloud className="mr-1 inline size-4" />Upload<input type="file" accept=".pdf,.docx,.txt,.csv" className="hidden" onChange={e => void uploadDocument(String(doc), e.target.files?.[0])} /></label><Button type="button" variant="outline" onClick={() => void pasteDocument(String(doc))}>Paste text instead</Button><Button type="button" variant="ghost" onClick={() => setDocumentStatus(current => ({ ...current, [String(doc)]: "Skipped for now" }))}>Skip for now</Button></div><Textarea value={pastedDocuments[String(doc)] || ""} onChange={e => setPastedDocuments(current => ({ ...current, [String(doc)]: e.target.value }))} placeholder="Paste the relevant text here (optional)" rows={2} className="resize-none rounded-xl bg-transparent text-sm" /></div>
                 ))}
-                <p className="text-sm text-muted-foreground">You can skip these for now and add them later in Company Brain.</p>
+                <p className="mb-3 text-sm text-amber-800" role="note">Everything you upload may be shared with people who contact your Employee. Do not upload confidential or personal data.</p><p className="text-sm text-muted-foreground">You can skip these for now and add them later in Company Brain.</p>
               </div>
             )}
 
@@ -322,14 +359,9 @@ function Onboarding() {
                   <div className="min-w-0">
                     <p className="truncate font-medium">{t.name}</p>
                     <p className="mt-1 text-sm text-muted-foreground">{t.description}</p>
+                    {integrationStatus[t.id]?.status === "connected" && <p className="mt-2 text-xs font-medium text-emerald-700">● Connected{integrationStatus[t.id]?.account_email ? ` · ${integrationStatus[t.id].account_email}` : ""}</p>}
                   </div>
-                  <Button
-                    variant="outline"
-                    className="shrink-0"
-                    onClick={() => { if (t.id === "gmail") void connectTool(t.id); else toast(`${t.name} connects through Ikamva's OAuth flow.`); }}
-                  >
-                    {connectingTool === t.id ? "Opening Google…" : connectedProviders.includes(t.id) ? "Connected" : "Connect"}
-                  </Button>
+                  {connectedProviders.includes(t.id) ? <Button variant="outline" className="shrink-0" onClick={() => void disconnectTool(t.id)} disabled={connectingTool === t.id}>{connectingTool === t.id ? "Disconnecting…" : "Disconnect"}</Button> : <Button variant="outline" className="shrink-0" onClick={() => { if (t.id === "gmail") void connectTool(t.id); else toast(`${t.name} connects through Ikamva's OAuth flow.`); }}>{connectingTool === t.id ? "Opening Google…" : "Connect"}</Button>}
                 </div>
               ))}
 

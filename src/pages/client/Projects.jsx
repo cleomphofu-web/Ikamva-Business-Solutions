@@ -1,11 +1,10 @@
 import authService from '@/lib/auth-service';
-import appServices from '@/lib/app-services';
-import React, { useEffect, useState, useRef } from 'react';
+import { crmProjectsApi } from '@/lib/ikamva/api-client';
+import React, { useEffect, useState } from 'react';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import DashboardLayout from '@/components/client/DashboardLayout';
 import { FolderKanban, CheckCircle2, Circle, Clock, CalendarDays, User } from 'lucide-react';
-import { toast } from 'sonner';
 
 const STATUS_CONFIG = {
   not_started: { label: 'Not Started',  color: 'bg-gray-100 text-gray-600',   bar: 'bg-gray-300' },
@@ -60,54 +59,15 @@ function MilestoneList({ milestones }) {
   );
 }
 
-const STATUS_LABELS = {
-  not_started: 'Not Started',
-  in_progress: 'In Progress',
-  on_hold: 'On Hold',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-};
-
 export default function ClientProjects() {
   const [user, setUser] = useState(null);
-  const qc = useQueryClient();
-  const prevProjectsRef = useRef({});
   useEffect(() => { authService.getCurrentUser().then(setUser); }, []);
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['client-projects', user?.email],
-    queryFn: () => appServices.records.Project.filter({ client_email: user.email }, '-created_date'),
+    queryFn: async () => (await crmProjectsApi.list()).projects.filter(p => p.client_email === user.email),
     enabled: !!user?.email,
   });
-
-  // Real-time subscription — show toast on status change or new project
-  useEffect(() => {
-    if (!user?.email) return;
-    const unsubscribe = appServices.records.Project.subscribe((event) => {
-      const p = event.data;
-      if (!p || p.client_email !== user.email) return;
-
-      if (event.type === 'create') {
-        qc.invalidateQueries({ queryKey: ['client-projects', user.email] });
-        toast.info(`New project started: "${p.title}"`, { duration: 6000, icon: '🗂️' });
-      } else if (event.type === 'update') {
-        const prev = prevProjectsRef.current[p.id];
-        qc.invalidateQueries({ queryKey: ['client-projects', user.email] });
-        if (prev && prev.status !== p.status) {
-          toast.success(`"${p.title}" status → ${STATUS_LABELS[p.status] || p.status}`, { duration: 7000, icon: '📋' });
-        } else if (prev) {
-          toast.info(`Project "${p.title}" has been updated.`, { duration: 5000 });
-        }
-      }
-      prevProjectsRef.current[p.id] = p;
-    });
-    return unsubscribe;
-  }, [user?.email, qc]);
-
-  // Keep ref in sync with loaded projects
-  useEffect(() => {
-    projects.forEach(p => { prevProjectsRef.current[p.id] = p; });
-  }, [projects]);
 
   const active = projects.filter(p => p.status === 'in_progress').length;
   const completed = projects.filter(p => p.status === 'completed').length;

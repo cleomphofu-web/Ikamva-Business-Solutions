@@ -1,4 +1,5 @@
 export class SupabaseContactRepository {
+  async findByEmail(email, tenantId) { const { data, error } = await this.db.from('crm_contacts').select('*').eq('tenant_id', tenantId).ilike('email', email).maybeSingle(); if (error) throw error; return data ?? null; }
   constructor(supabase) { this.db = supabase; }
 
   async findById(id, tenantId) {

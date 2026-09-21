@@ -1,75 +1,113 @@
-import authService from '@/lib/auth-service';
-import { useLocation } from 'react-router-dom';
-
+import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import authService from '@/lib/auth-service';
 
-export default function PageNotFound({}) {
-    const location = useLocation();
-    const pageName = location.pathname.substring(1);
+export default function PageNotFound() {
+  const location = useLocation();
+  const pageName = location.pathname;
 
-    const { data: authData, isFetched } = useQuery({
-        queryKey: ['user'],
-        queryFn: async () => {
-            try {
-                const user = await authService.getCurrentUser();
-                return { user, isAuthenticated: Boolean(user) };
-            } catch (error) {
-                return { user: null, isAuthenticated: false };
-            }
-        }
-    });
-    
-    return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
-            <div className="max-w-md w-full">
-                <div className="text-center space-y-6">
-                    {/* 404 Error Code */}
-                    <div className="space-y-2">
-                        <h1 className="text-7xl font-light text-slate-300">404</h1>
-                        <div className="h-0.5 w-16 bg-slate-200 mx-auto"></div>
-                    </div>
-                    
-                    {/* Main Message */}
-                    <div className="space-y-3">
-                        <h2 className="text-2xl font-medium text-slate-800">
-                            Page Not Found
-                        </h2>
-                        <p className="text-slate-600 leading-relaxed">
-                            The page <span className="font-medium text-slate-700">"{pageName}"</span> could not be found in this application.
-                        </p>
-                    </div>
-                    
-                    {/* Admin Note */}
-                    {isFetched && authData.isAuthenticated && authData.user?.app_metadata?.role === 'admin' && (
-                        <div className="mt-8 p-4 bg-slate-100 rounded-lg border border-slate-200">
-                            <div className="flex items-start space-x-3">
-                                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center mt-0.5">
-                                    <div className="w-2 h-2 rounded-full bg-orange-400"></div>
-                                </div>
-                                <div className="text-left space-y-1">
-                                    <p className="text-sm font-medium text-slate-700">Admin Note</p>
-                                    <p className="text-sm text-slate-600 leading-relaxed">
-                                        This could mean that the AI hasn't implemented this page yet. Ask it to implement it in the chat.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {/* Action Button */}
-                    <div className="pt-6">
-                        <button 
-                            onClick={() => window.location.href = '/'} 
-                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
-                        >
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                            Go Home
-                        </button>
-                    </div>
-                </div>
+  const { data: authData, isFetched } = useQuery({
+    queryKey: ['user'],
+    queryFn: async () => {
+      try {
+        const user = await authService.getCurrentUser();
+        return { user, isAuthenticated: Boolean(user) };
+      } catch {
+        return { user: null, isAuthenticated: false };
+      }
+    },
+  });
+
+  const isAdmin = isFetched && authData?.isAuthenticated && authData?.user?.app_metadata?.role === 'admin';
+  const homeHref = isFetched && authData?.isAuthenticated ? '/dashboard' : '/';
+
+  return (
+    <div
+      className="relative min-h-screen w-full overflow-hidden"
+      style={{ background: 'var(--background)' }}
+    >
+      {/* Subtle radial glow behind the card */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0"
+        style={{
+          background:
+            'radial-gradient(ellipse 70% 60% at 50% 40%, color-mix(in oklab, var(--primary) 12%, transparent), transparent 70%)',
+        }}
+      />
+
+      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-16">
+        {/* Logo pill */}
+        <Link to="/" className="mb-12 flex items-center gap-2 opacity-70 transition-opacity hover:opacity-100">
+          <span
+            className="grid size-8 place-items-center rounded-xl text-xs font-bold text-primary"
+            style={{ background: 'color-mix(in oklab, var(--primary) 14%, transparent)' }}
+          >
+            IK
+          </span>
+          <span className="text-sm font-semibold tracking-wide">Ikamva</span>
+        </Link>
+
+        {/* Main card */}
+        <div
+          className="glass w-full max-w-lg rounded-[2rem] p-10 text-center shadow-[0_40px_120px_-60px_rgba(0,0,0,0.5)]"
+          style={{ border: '1px solid color-mix(in oklab, var(--primary) 20%, transparent)' }}
+        >
+          {/* Error code */}
+          <p
+            className="text-8xl font-light tabular-nums"
+            style={{
+              background: 'linear-gradient(135deg, var(--foreground) 0%, color-mix(in oklab, var(--foreground) 30%, transparent) 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            404
+          </p>
+
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight">Page not found</h1>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs">{pageName}</code>{' '}
+            doesn't exist in this application.
+          </p>
+
+          {/* Admin hint */}
+          {isAdmin && (
+            <div
+              className="mt-6 rounded-2xl px-4 py-3 text-left text-sm"
+              style={{
+                background: 'color-mix(in oklab, var(--primary) 8%, transparent)',
+                border: '1px solid color-mix(in oklab, var(--primary) 18%, transparent)',
+              }}
+            >
+              <p className="font-medium text-primary">Admin note</p>
+              <p className="mt-1 text-muted-foreground">
+                This page may not be implemented yet. Ask the AI assistant to build it in the chat.
+              </p>
             </div>
+          )}
+
+          {/* Actions */}
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link
+              to={homeHref}
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-transform hover:scale-105"
+            >
+              {authData?.isAuthenticated ? 'Back to dashboard' : 'Go home'}
+            </Link>
+            <button
+              type="button"
+              onClick={() => window.history.back()}
+              className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Go back
+            </button>
+          </div>
         </div>
-    )
+
+        {/* Footer caption */}
+        <p className="mt-10 text-xs text-muted-foreground/50">Ikamva AI Operating System</p>
+      </div>
+    </div>
+  );
 }

@@ -1,5 +1,5 @@
 import authService from '@/lib/auth-service';
-import appServices from '@/lib/app-services';
+import { accountOpsApi } from '@/lib/ikamva/api-client';
 import React, { useEffect, useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
@@ -35,7 +35,7 @@ export default function ClientBilling() {
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['client-invoices', user?.email],
-    queryFn: () => appServices.records.Invoice.filter({ client_email: user.email }, '-created_date'),
+    queryFn: async () => (await accountOpsApi.summary()).invoices?.filter(invoice => invoice.client_email === user.email) || [],
     enabled: !!user?.email,
   });
 

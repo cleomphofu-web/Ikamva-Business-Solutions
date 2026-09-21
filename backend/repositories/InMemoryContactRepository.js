@@ -8,6 +8,7 @@ export class InMemoryContactRepository {
     const contact = this.contacts.get(id);
     return contact?.tenant_id === tenantId ? { ...contact } : null;
   }
+  async findByEmail(email, tenantId) { return [...this.contacts.values()].find(contact => contact.tenant_id === tenantId && String(contact.email || '').toLowerCase() === String(email || '').toLowerCase()) || null; }
 
   async list(tenantId) {
     return [...this.contacts.values()].filter(contact => contact.tenant_id === tenantId).map(contact => ({ ...contact }));

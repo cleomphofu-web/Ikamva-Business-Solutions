@@ -12,6 +12,7 @@ import { SupabaseEmployeeMemoryRepository } from './SupabaseEmployeeMemoryReposi
 import { SupabaseCompanyKnowledgeRepository } from './SupabaseCompanyKnowledgeRepository.js';
 import { SupabaseApprovalRepository } from './SupabaseApprovalRepository.js';
 import { SupabaseTenantIntegrationRepository } from './SupabaseTenantIntegrationRepository.js';
+import { SupabaseSpecialistRepository } from './SupabaseSpecialistRepository.js';
 
 export const createSupabaseRepositoryProvider = ({ supabase }) => ({
   createSystemRepositories() {
@@ -30,6 +31,7 @@ export const createSupabaseRepositoryProvider = ({ supabase }) => ({
       companyKnowledge: new SupabaseCompanyKnowledgeRepository(supabase),
       approvals: new SupabaseApprovalRepository(supabase),
       tenantIntegrations: new SupabaseTenantIntegrationRepository(supabase),
+      specialists: new SupabaseSpecialistRepository(supabase),
     };
   },
 });

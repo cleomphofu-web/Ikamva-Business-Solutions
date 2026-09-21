@@ -59,40 +59,106 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen bg-background px-6 py-12">
-      <div className="mx-auto flex min-h-[calc(100vh-6rem)] max-w-md flex-col justify-center">
-        <Link to="/" className="mb-8 inline-flex self-center rounded-2xl bg-white px-4 py-3 shadow-sm">
-          <Logo height={30} />
+    <div className="min-h-screen bg-background flex items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md flex flex-col items-center gap-6">
+
+        {/* Logo pill */}
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/6 border border-white/10 hover:bg-white/10 transition-colors"
+        >
+          <div className="h-6 w-6 rounded-lg bg-[#fcfc03] flex items-center justify-center">
+            <span className="text-[#0a0a05] text-[10px] font-black tracking-tight">IK</span>
+          </div>
+          <span className="text-[#fafaf9] font-semibold text-sm tracking-tight">Ikamva</span>
         </Link>
-        <form onSubmit={handleSubmit} className="rounded-[2rem] border border-emerald-950/10 bg-white/85 p-8 shadow-[0_30px_110px_-70px_rgba(23,55,39,0.45)] backdrop-blur-xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-900/55">Welcome back</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-emerald-950">Sign in to Ikamva</h1>
-          <p className="mt-3 text-sm leading-6 text-emerald-950/66">Use the email and password you created during registration.</p>
+
+        {/* Card */}
+        <form
+          onSubmit={handleSubmit}
+          className="w-full rounded-3xl border border-white/10 bg-[#05050a]/70 p-8 backdrop-blur-2xl shadow-[0_32px_80px_-20px_rgba(0,0,0,0.8)]"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#fcfc03]/70">
+            Welcome back
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#fafaf9]">
+            Sign in to Ikamva
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-[#fafaf9]/40">
+            Use the email and password you created during registration.
+          </p>
 
           {error && (
-            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
               {error}
             </div>
           )}
 
-          <div className="mt-6 space-y-4">
+          <div className="mt-7 space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="signin-email">Email</Label>
-              <Input id="signin-email" type="email" autoComplete="email" value={form.email} onChange={update('email')} required />
+              <label htmlFor="signin-email" className="block text-xs font-medium text-[#fafaf9]/55 tracking-wide">
+                Email
+              </label>
+              <input
+                id="signin-email"
+                type="email"
+                autoComplete="email"
+                value={form.email}
+                onChange={update('email')}
+                required
+                className="w-full rounded-xl border border-white/20 px-4 py-3 text-sm outline-none transition-all focus:ring-2"
+                style={{
+                  background: 'rgba(255,255,255,0.08)',
+                  color: '#fafaf9',
+                  caretColor: '#fcfc03',
+                  borderColor: 'rgba(255,255,255,0.2)',
+                  boxShadow: 'none',
+                }}
+                onFocus={e => (e.target.style.borderColor = 'rgba(252,252,3,0.5)')}
+                onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.2)')}
+                placeholder="you@example.com"
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="signin-password">Password</Label>
-              <Input id="signin-password" type="password" autoComplete="current-password" value={form.password} onChange={update('password')} required />
+              <label htmlFor="signin-password" className="block text-xs font-medium text-[#fafaf9]/55 tracking-wide">
+                Password
+              </label>
+              <input
+                id="signin-password"
+                type="password"
+                autoComplete="current-password"
+                value={form.password}
+                onChange={update('password')}
+                required
+                className="w-full rounded-xl border border-white/20 px-4 py-3 text-sm outline-none transition-all focus:ring-2"
+                style={{
+                  background: 'rgba(255,255,255,0.08)',
+                  color: '#fafaf9',
+                  caretColor: '#fcfc03',
+                  borderColor: 'rgba(255,255,255,0.2)',
+                  boxShadow: 'none',
+                }}
+                onFocus={e => (e.target.style.borderColor = 'rgba(252,252,3,0.5)')}
+                onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.2)')}
+                placeholder="••••••••"
+              />
             </div>
           </div>
 
-          <Button type="submit" className="mt-6 w-full rounded-full" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-7 w-full rounded-full bg-[#fcfc03] py-3.5 text-sm font-semibold text-[#0a0a05] transition-all hover:bg-[#fcfc03]/90 hover:shadow-[0_0_30px_rgba(252,252,3,0.25)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             {loading ? 'Signing in…' : 'Sign in'}
-          </Button>
+          </button>
 
-          <p className="mt-4 text-center text-sm text-emerald-950/62">
+          <p className="mt-5 text-center text-sm text-[#fafaf9]/35">
             New here?{' '}
-            <Link to="/signup" className="font-medium text-emerald-950 underline underline-offset-4">
+            <Link
+              to="/signup"
+              className="font-medium text-[#fafaf9]/70 underline underline-offset-4 hover:text-[#fafaf9] transition-colors"
+            >
               Create your account
             </Link>
           </p>

@@ -32,6 +32,15 @@ export class QueueService {
     return task;
   }
 
+  async enqueueEmailTriageTask(input) {
+    if (typeof this.taskQueueRepository.enqueueEmailTriageTask === 'function') {
+      const task = await this.taskQueueRepository.enqueueEmailTriageTask(input);
+      if (task) await this.auditService.emit({ task, eventType: TaskEvents.TASK_CREATED, toStatus: task.status, message: 'Task created', metadata: { idempotency_key: task.idempotency_key } });
+      return task;
+    }
+    return this.enqueueTask({ ...input, task_type: 'email_triage' });
+  }
+
   async claimNextTask({ tenantId, workerId, taskTypes = [] } = {}) {
     const task = await this.taskQueueRepository.claimNext({ tenantId, workerId, taskTypes, now: this.clock().toISOString() });
     if (!task) return null;
@@ -69,11 +78,12 @@ export class QueueService {
   }
 
   async completeTask(task, result, options = {}) {
+    const { metadata: callerMetadata = {}, ...restOptions } = options;
     return this.transitionTask(task, TaskStatuses.COMPLETED, {
       eventType: TaskEvents.TASK_COMPLETED,
       message: 'Task completed',
-      metadata: { result },
-      ...options,
+      metadata: { result, ...callerMetadata },
+      ...restOptions,
     });
   }
 

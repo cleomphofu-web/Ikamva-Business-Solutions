@@ -3,11 +3,15 @@ import { setDefaultResultOrder } from 'node:dns';
 import { createApiRouter } from './api/router.js';
 import supabaseAdmin from './lib/supabase-admin.js';
 import { createExecutionContainer } from './container/createExecutionContainer.js';
+import { handleError } from './lib/handle-error.js';
+import { assertProductionEmailVerification } from './config/runtime-env.js';
 
 setDefaultResultOrder('ipv4first');
 
 const port = Number(process.env.IKAMVA_API_PORT || process.env.PORT || 4178);
 const host = process.env.IKAMVA_API_HOST || '127.0.0.1';
+
+assertProductionEmailVerification();
 
 const apiRouter = createApiRouter();
 const startupContainer = createExecutionContainer({ supabaseAdmin });
@@ -31,14 +35,10 @@ const server = http.createServer(async (req, res) => {
     const handled = await apiRouter(req, res);
     if (!handled && !res.writableEnded) {
       res.writeHead(404, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Not Found' }));
+      res.end(JSON.stringify({ error: { code: 'NOT_FOUND', message: 'Not Found' } }));
     }
   } catch (error) {
-    console.error('[dev-api] Unhandled error:', error);
-    if (!res.writableEnded) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Internal server error' }));
-    }
+    if (!res.writableEnded) handleError(error, req, res);
   }
 });
 

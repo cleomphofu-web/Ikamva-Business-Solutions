@@ -77,4 +77,26 @@ export class SupabaseSOPRepository {
     if (error) throw error;
     return data;
   }
+
+  async ensureDefaultShiftStart({ tenantId, clientProfileId } = {}) {
+    const existing = await this.findActiveByTaskType({ tenantId, taskType: 'shift_start' });
+    if (existing) return existing;
+    const { data, error } = await this.db.from('client_sops').insert({
+      tenant_id: tenantId,
+      client_profile_id: clientProfileId ?? null,
+      name: 'Morning Shift Standup & Briefing',
+      task_type: 'shift_start',
+      version: 1,
+      active: true,
+      system_prompt: 'Review live specialist status, overnight operations, and pending approvals. Produce a concise, executive morning briefing for the account owner highlighting pending actions and needs_attention flags.',
+      validation_schema: { required: [] },
+      output_schema: { type: 'object' },
+      model_provider: 'groq',
+      model_name: process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
+      model_settings: {},
+    }).select().single();
+    if (error) throw error;
+    return data;
+  }
 }
+

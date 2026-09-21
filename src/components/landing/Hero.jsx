@@ -1,185 +1,148 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Play, Sparkles, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import SpotlightCard from '@/components/SpotlightCard';
-import WarpText from '@/components/WarpText';
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
+import { ArrowRight, ArrowDown } from 'lucide-react';
 
-function DemoModal({ onClose }) {
-  return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-        onClick={e => e.target === e.currentTarget && onClose()}
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.92, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.92 }}
-          transition={{ duration: 0.3 }}
-          className="relative w-full max-w-4xl bg-black rounded-2xl overflow-hidden shadow-2xl"
-        >
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
-          >
-            <X className="w-4 h-4 text-white" />
-          </button>
-          <div className="aspect-video w-full bg-gradient-to-br from-slate-900 to-slate-800 flex flex-col items-center justify-center gap-6 p-8">
-            <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-2">
-              <Sparkles className="w-10 h-10 text-white" />
-            </div>
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-white mb-2">Fullscope VA Demo</h3>
-              <p className="text-white/60 max-w-md text-sm leading-relaxed">
-                See how our virtual assistants handle your email management, calendar scheduling, document preparation, and more — all through your personal client portal.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4 w-full max-w-xl">
-              {[
-                { label: '📧 Email Management', desc: 'Inbox zero in 24hrs' },
-                { label: '📅 Calendar Scheduling', desc: 'Zero double-bookings' },
-                { label: '📄 Document Prep', desc: 'Professional output' },
-                { label: '📊 Monthly Reports', desc: 'Full transparency' },
-                { label: '💬 Communication Hub', desc: 'Never miss a call' },
-                { label: '🔒 Secure Portal', desc: 'Your data, safe' },
-              ].map((item) => (
-                <div key={item.label} className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-                  <p className="text-white text-xs font-medium">{item.label}</p>
-                  <p className="text-white/40 text-xs mt-0.5">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-            <Link to="/signup">
-              <Button className="mt-2 rounded-full px-8 bg-white text-black hover:bg-white/90 gap-2">
-                Get Started Today <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
+// Stagger container helpers
+const container = {
+  hidden: {},
+  show: {
+    transition: { staggerChildren: 0.12, delayChildren: 0.3 },
+  },
+};
+const fadeUp = {
+  hidden: { opacity: 0, y: 28 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.4, 0, 0.2, 1] } },
+};
+const fadeIn = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.6, ease: 'easeOut' } },
+};
 
 export default function Hero() {
-  const [showDemo, setShowDemo] = useState(false);
+  const containerRef = useRef(null);
+  const prefersReduced = useReducedMotion();
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start start', 'end start'],
+  });
+
+  // Parallax on background only — no parallax for reduced-motion
+  const bgY = useTransform(scrollYProgress, [0, 1], prefersReduced ? ['0%', '0%'] : ['0%', '35%']);
+
   return (
-    <><section className="relative min-h-screen flex items-center overflow-hidden pt-20">
-      {/* Background gradient orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/3 right-0 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+    <section
+      ref={containerRef}
+      className="relative min-h-screen flex flex-col justify-center overflow-hidden"
+    >
+      {/* Background image with parallax */}
+      <div className="absolute inset-0 z-0 bg-[#05050a]">
+        <motion.div
+          style={{ y: bgY, position: 'absolute', inset: 0, top: '-15%', height: '130%' }}
+        >
+          <img
+            src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1920&auto=format&fit=crop"
+            alt=""
+            aria-hidden
+            className="w-full h-full object-cover object-center"
+            style={{ filter: 'saturate(15%) brightness(0.28)' }}
+          />
+        </motion.div>
+        {/* Gradient overlays for text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#05050a]/60 via-transparent to-[#0a0a05]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a05]/80 via-transparent to-transparent" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 w-full py-20">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="text-center lg:text-left">
-            
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-8">
-              
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Professional Virtual Assistance
-            </motion.div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-display font-bold leading-tight tracking-tight">
-              Your time is{' '}
-              <span className="text-primary">precious.</span>
-              <br />
-              Let us handle the rest.
-            </h1>
-
-            <div className="mt-6 text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              <span className="inline-flex items-center align-middle"><WarpText text="Ikamva" className="inline-block h-[1.2em] min-h-0 w-[4.5em]" /></span> Virtual Admin Assist provides dependable remote administrative support to busy professionals, founders, and small businesses — without the cost of full-time staff.
-            </div>
-
-            <div className="mt-10 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-              <SpotlightCard className="rounded-full border-transparent bg-transparent p-0" spotlightColor="rgba(233, 231, 224, 0.32)">
-                <Link to="/signup">
-                <Button size="lg" className="rounded-full px-8 text-base gap-2 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all">
-                  Start Free Trial
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-                </Link>
-              </SpotlightCard>
-              <Button variant="ghost" size="lg" onClick={() => setShowDemo(true)} className="rounded-full px-8 text-base gap-2 text-muted-foreground">
-                <div className="w-8 h-8 rounded-full bg-foreground/5 flex items-center justify-center">
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                </div>
-                Watch Demo
-              </Button>
-            </div>
-
-            <div className="mt-12 flex items-center gap-6 justify-center lg:justify-start">
-              <div className="flex -space-x-2">
-                {['bg-lime-400', 'bg-cyan-400', 'bg-emerald-400', 'bg-amber-400'].map((c, i) =>
-                <div key={i} className={`w-8 h-8 rounded-full ${c} border-2 border-background`} />
-                )}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">2,000+</span> professionals trust Fullscope
-              </div>
-            </div>
+      {/* Content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 w-full pt-32 pb-24 lg:pt-40 lg:pb-32">
+        <motion.div
+          variants={prefersReduced ? {} : container}
+          initial={prefersReduced ? false : 'hidden'}
+          animate="show"
+          className="max-w-4xl"
+        >
+          {/* Status pill */}
+          <motion.div variants={prefersReduced ? {} : fadeIn} className="mb-10">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#fcfc03]/20 bg-[#fcfc03]/5 text-[#fcfc03] text-xs font-semibold tracking-widest uppercase">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#fcfc03] animate-pulse" />
+              Accepting new clients
+            </span>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="relative hidden lg:block">
-            
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-accent/20 rounded-3xl blur-2xl scale-95" />
-              <div className="relative bg-gradient-to-br from-primary/5 to-accent/5 rounded-3xl overflow-hidden border border-border/30 shadow-2xl aspect-[4/3] flex items-center justify-center">
-                <div className="text-center p-12">
-                  <div className="w-24 h-24 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-6">
-                    <Sparkles className="w-12 h-12 text-primary" />
-                  </div>
-                  <p className="text-2xl font-display font-bold text-foreground mb-2">Meet IKA</p>
-                  <p className="text-muted-foreground">Your dedicated virtual assistant team</p>
-                  <div className="mt-6 flex gap-2 justify-center flex-wrap">
-                    {['Email', 'Calendar', 'Documents', 'Data Entry', 'CRM', 'Reporting'].map((tag) =>
-                    <span key={tag} className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">{tag}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Main headline */}
+          <motion.h1
+            variants={prefersReduced ? {} : fadeUp}
+            className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-hero font-normal leading-[0.95] tracking-tight text-[#fafaf9]"
+            style={{ fontFamily: 'var(--font-hero)' }}
+          >
+            Work smarter.
+            <br />
+            <span className="text-[#fcfc03]">Move faster.</span>
+            <br />
+            <span className="text-[#fafaf9]/40">Stay human.</span>
+          </motion.h1>
 
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1, duration: 0.6 }}
-              className="absolute -left-8 bottom-16 bg-card rounded-2xl shadow-xl border border-border/50 p-4">
-              
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-primary text-lg">✓</span>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">Task Completed</p>
-                  <p className="text-xs text-muted-foreground">Inbox organized — 47 emails sorted</p>
-                </div>
-              </div>
-            </motion.div>
+          {/* Supporting copy */}
+          <motion.p
+            variants={prefersReduced ? {} : fadeUp}
+            className="mt-8 text-lg lg:text-xl text-[#fafaf9]/55 leading-relaxed max-w-xl"
+            style={{ fontFamily: 'var(--font-sans)' }}
+          >
+            Ikamva gives your team an AI-powered operating layer — handling the
+            repetitive, coordinating the complex, and keeping your business moving
+            without adding headcount.
+          </motion.p>
+
+          {/* CTAs */}
+          <motion.div
+            variants={prefersReduced ? {} : fadeUp}
+            className="mt-12 flex flex-col sm:flex-row items-start gap-4"
+          >
+            <Link
+              to="/signup"
+              className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-[#fcfc03] text-[#0a0a05] font-semibold text-sm transition-all duration-300 hover:bg-[#fcfc03]/90 hover:shadow-[0_0_40px_rgba(252,252,3,0.3)] hover:scale-[0.97]"
+            >
+              Start with Ikamva
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+            <a
+              href="#services"
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full border border-white/15 text-[#fafaf9]/70 font-medium text-sm transition-all duration-300 hover:border-white/30 hover:text-[#fafaf9] hover:bg-white/5"
+            >
+              Explore capabilities
+            </a>
           </motion.div>
-        </div>
+        </motion.div>
+
+        {/* Scroll cue */}
+        <motion.div
+          initial={prefersReduced ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.6, duration: 0.8 }}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[#fafaf9]/25"
+        >
+          <motion.div
+            animate={prefersReduced ? {} : { y: [0, 8, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <ArrowDown className="w-4 h-4" />
+          </motion.div>
+        </motion.div>
+      </div>
+
+      {/* Typographic watermark */}
+      <div
+        className="absolute right-[-2vw] bottom-[-4vw] z-0 select-none pointer-events-none"
+        aria-hidden
+      >
+        <span
+          className="text-[20vw] font-hero font-normal leading-none text-[#fafaf9]/[0.025]"
+          style={{ fontFamily: 'var(--font-hero)' }}
+        >
+          IK
+        </span>
       </div>
     </section>
-    {showDemo && <DemoModal onClose={() => setShowDemo(false)} />}
-    </>
   );
 }

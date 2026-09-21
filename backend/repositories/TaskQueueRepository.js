@@ -7,6 +7,9 @@ export class TaskQueueRepository {
     throw new Error('TaskQueueRepository.findById requires a database provider implementation.');
   }
 
+  async listByParentId() { throw new Error('TaskQueueRepository.listByParentId requires a database provider implementation.'); }
+  async listByType() { throw new Error('TaskQueueRepository.listByType requires a database provider implementation.'); }
+
   async findByIdempotencyKey() {
     throw new Error('TaskQueueRepository.findByIdempotencyKey requires a database provider implementation.');
   }
@@ -29,6 +32,10 @@ export class TaskQueueRepository {
 
   async recoverExpiredLocks() {
     throw new Error('TaskQueueRepository.recoverExpiredLocks requires a database provider implementation.');
+  }
+
+  async listRecent() {
+    throw new Error('TaskQueueRepository.listRecent requires a database provider implementation.');
   }
 
   async getOperationalMetrics() {

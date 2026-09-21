@@ -23,6 +23,8 @@ export class SupabaseApprovalRepository {
         reasoning_summary: input.reasoning_summary ?? '',
         status:            'pending',
         requested_by:      input.requested_by ?? null,
+        confidence_score:  input.confidence_score ?? null,
+        confidence_reason: input.confidence_reason ?? null,
       })
       .select()
       .single();
@@ -67,8 +69,14 @@ export class SupabaseApprovalRepository {
       })
       .eq('tenant_id', tenantId)
       .eq('id', id)
+      .eq('status', 'pending')
       .select()
       .maybeSingle();
+    if (error) throw error;
+    return data ?? null;
+  }
+  async updateActionPayload(tenantId, id, actionPayload) {
+    const { data, error } = await this.db.from('approval_queue').update({ action_payload: actionPayload, updated_at: new Date().toISOString(), updated_date: new Date().toISOString() }).eq('tenant_id', tenantId).eq('id', id).eq('status', 'pending').select().maybeSingle();
     if (error) throw error;
     return data ?? null;
   }

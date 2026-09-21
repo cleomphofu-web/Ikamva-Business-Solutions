@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '@/lib/AuthContext';
 import PageNotFound from './lib/PageNotFound';
 import Home from './pages/Home';
@@ -15,6 +15,7 @@ import { ApplicationPendingPage, ApplicationRejectedPage, ProvisioningPage } fro
 import AccessGate from '@/components/AccessGate';
 import { MissionControlLayout } from '@/components/ikamva/MissionControlLayout';
 import MissionControlOverview from './pages/client/MissionControl/Overview';
+import MissionControlTeam from './pages/client/MissionControl/team';
 import MissionControlContext from './pages/client/MissionControl/context';
 import MissionControlRules from './pages/client/MissionControl/rules';
 import MissionControlSchedule from './pages/client/MissionControl/schedule';
@@ -26,6 +27,9 @@ import MissionControlApprovals from './pages/client/MissionControl/approvals';
 import MissionControlLogs from './pages/client/MissionControl/logs';
 import MissionControlAccount from './pages/client/MissionControl/account';
 import MissionControlOnboarding from './pages/client/MissionControl/onboarding';
+import ClientBilling from './pages/client/Billing';
+import ClientProjects from './pages/client/Projects';
+import ClientTasks from './pages/client/Tasks';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminApplications from './pages/admin/Applications';
 import Inquiries from './pages/admin/Inquiries';
@@ -55,9 +59,13 @@ const AuthenticatedApp = () => {
       <Route path="/application-pending" element={<ApplicationPendingPage />} />
       <Route path="/application-rejected" element={<ApplicationRejectedPage />} />
       <Route path="/provisioning" element={<ProvisioningPage />} />
+      {/* APP_FLOW.md canonical aliases */}
+      <Route path="/apply" element={<Navigate to="/signup" replace />} />
+      <Route path="/setup" element={<Navigate to="/dashboard/onboarding" replace />} />
 
       <Route element={<AccessGate scope="client" />}>
         <Route path="/dashboard" element={withMissionControl(<MissionControlOverview />)} />
+        <Route path="/dashboard/team" element={withMissionControl(<MissionControlTeam />)} />
         <Route path="/dashboard/context" element={withMissionControl(<MissionControlContext />)} />
         <Route path="/dashboard/rules" element={withMissionControl(<MissionControlRules />)} />
         <Route path="/dashboard/schedule" element={withMissionControl(<MissionControlSchedule />)} />
@@ -69,6 +77,12 @@ const AuthenticatedApp = () => {
         <Route path="/dashboard/logs" element={withMissionControl(<MissionControlLogs />)} />
         <Route path="/dashboard/account" element={withMissionControl(<MissionControlAccount />)} />
         <Route path="/dashboard/onboarding" element={withMissionControl(<MissionControlOnboarding />)} />
+        {/* APP_FLOW.md canonical aliases */}
+        <Route path="/dashboard/mission-control" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard/settings" element={<Navigate to="/dashboard/account" replace />} />
+        <Route path="/dashboard/billing" element={<ClientBilling />} />
+        <Route path="/dashboard/projects" element={<ClientProjects />} />
+        <Route path="/dashboard/tasks" element={<ClientTasks />} />
       </Route>
 
       <Route element={<AccessGate scope="admin" />}>

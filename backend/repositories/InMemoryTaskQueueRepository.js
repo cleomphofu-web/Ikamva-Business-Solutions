@@ -65,19 +65,53 @@ export class InMemoryTaskQueueRepository {
     return { ...updated };
   }
 
+  /**
+   * Atomic compare-and-set: transitions the task from expectedStatus → newStatus
+   * only if its current status matches expectedStatus.
+   * Returns the updated task on success, or null if the status didn't match
+   * (i.e. another concurrent caller already transitioned it — treat as a no-op).
+   *
+   * In-memory equivalent of:
+   *   UPDATE task_queue SET status = newStatus WHERE id = ? AND status = expectedStatus RETURNING *
+   */
+  async compareAndSetStatus(id, expectedStatus, newStatus, patch = {}) {
+    const existing = this.tasks.get(id);
+    if (!existing || existing.status !== expectedStatus) return null;
+
+    const updated = {
+      ...existing,
+      ...patch,
+      status: newStatus,
+      updated_at: this.clock().toISOString(),
+    };
+    this.tasks.set(id, updated);
+    return { ...updated };
+  }
+
   async scheduleRetry(id, patch) {
     return this.updateStatus(id, patch.status, patch);
   }
+  async updatePayload(id, tenantId, payload) { const task = this.tasks.get(id); if (!task || (tenantId && task.tenant_id !== tenantId)) return null; return this.updateStatus(id, task.status, { payload }); }
 
-  async recoverExpiredLocks({ timeoutMinutes = 10, tenantId, now = this.clock() } = {}) {
+  async listByParentId(parentTaskId, tenantId) {
+    return [...this.tasks.values()]
+      .filter(task => task.parent_task_id === parentTaskId && (!tenantId || task.tenant_id === tenantId))
+      .sort((a, b) => (a.step_index ?? 0) - (b.step_index ?? 0));
+  }
+  async listByType(taskType, tenantId) { return [...this.tasks.values()].filter((task) => task.task_type === taskType && (!tenantId || task.tenant_id === tenantId)).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); }
+  async listRecent(tenantId, limit = 100) { return [...this.tasks.values()].filter(task => !tenantId || task.tenant_id === tenantId).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, limit); }
+
+  async recoverExpiredLocks({ timeoutMinutes = 5, maxRetries = 3, tenantId, now = this.clock() } = {}) {
     const cutoff = new Date(new Date(now).getTime() - timeoutMinutes * 60 * 1000);
     const recovered = [];
     for (const task of this.tasks.values()) {
       if (task.status !== TaskStatuses.PROCESSING || (tenantId && task.tenant_id !== tenantId)) continue;
       if (!task.locked_at || new Date(task.locked_at) >= cutoff) continue;
-      recovered.push(await this.updateStatus(task.id, TaskStatuses.PENDING, {
+      recovered.push(await this.updateStatus(task.id, (task.retry_count ?? 0) >= maxRetries ? TaskStatuses.FAILED : TaskStatuses.PENDING, {
         locked_at: null,
         locked_by: null,
+        retry_count: (task.retry_count ?? 0) >= maxRetries ? task.retry_count : (task.retry_count ?? 0) + 1,
+        failed_at: (task.retry_count ?? 0) >= maxRetries ? new Date(now).toISOString() : task.failed_at,
       }));
     }
     return recovered;

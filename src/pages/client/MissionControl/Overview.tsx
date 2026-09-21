@@ -3,11 +3,13 @@ import { useEffect, useState } from "react";
 import { ArrowRight, BellRing, BrainCircuit, Sparkle, Target, LayoutDashboard, Database } from "lucide-react";
 import { EmployeeOrb, STATE_META, StatusPill } from "@/components/ikamva/employee-orb";
 import { EmployeeChat } from "@/components/ikamva/employee-chat";
-import { CapacityMeter, Panel } from "@/components/ikamva/primitives";
+import { CapacityMeter, EmptyState, Panel } from "@/components/ikamva/primitives";
 import { ScrollFloat } from "@/components/ikamva/ScrollFloat";
 import { GlassIcons } from "@/components/ikamva/GlassIcons";
-import { capacity, workspace } from "@/lib/ikamva/workspace-adapter";
-import { employeeApi, workforceApi } from "@/lib/ikamva/api-client";
+import { workspace } from "@/lib/ikamva/workspace-adapter";
+import { accountOpsApi, employeeApi, workforceApi } from "@/lib/ikamva/api-client";
+import { MissionControlErrorBoundary } from "./MissionControlErrorBoundary";
+import { AgentActivityTicker } from "./AgentActivityTicker";
 
 function greeting() {
   const h = new Date().getHours();
@@ -21,16 +23,20 @@ function Overview() {
   const [employee, setEmployee] = useState({ name: "your Employee", role: "AI Employee", lifecycle_status: "pending" });
   const [approvals, setApprovals] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [accountCapacity, setAccountCapacity] = useState(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [dataError, setDataError] = useState("");
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     let cancelled = false;
-    Promise.all([employeeApi.getMine(), workforceApi.listApprovals(), workforceApi.listActivityLogs({ limit: 5 })])
-      .then(([employeeData, approvalData, logData]) => {
+    Promise.all([employeeApi.getMine(), workforceApi.listApprovals(), workforceApi.listActivityLogs({ limit: 5 }), accountOpsApi.summary()])
+      .then(([employeeData, approvalData, logData, accountData]) => {
         if (cancelled) return;
         setEmployee(employeeData.employee || { name: "your Employee", role: "AI Employee", lifecycle_status: "pending" });
         setApprovals(approvalData.approvals || []);
         setLogs(logData.logs || logData.activity_logs || []);
+        setAccountCapacity(accountData.capacity || null);
+        setShowUpgradePrompt((logData.logs || logData.activity_logs || []).some((item) => item?.status === "completed" || item?.result));
       })
       .catch((error) => { if (!cancelled) setDataError(error?.message || "Unable to load live workspace data."); })
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -83,6 +89,20 @@ function Overview() {
           </ScrollFloat>
         </section>
 
+        {showUpgradePrompt && (
+          <section className="mx-auto w-full max-w-3xl rounded-3xl border border-primary/20 bg-primary/10 p-5 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">First value delivered</p>
+            <h2 className="mt-2 text-xl font-semibold">Unlock more ways for {employeeName} to help</h2>
+            <p className="mx-auto mt-2 max-w-lg text-sm text-muted-foreground">Your Employee has completed work successfully. Unlock additional capabilities such as Calendar Management — R299/month.</p>
+            <div className="mt-4 flex justify-center gap-3">
+              <a href="mailto:your-business-email@ikamva.co.za" className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Discuss an upgrade</a>
+              <button type="button" className="rounded-full border border-border px-4 py-2 text-sm" onClick={() => setShowUpgradePrompt(false)}>Not now</button>
+            </div>
+          </section>
+        )}
+
+        <AgentActivityTicker />
+
         <section className="mx-auto flex flex-col items-center justify-center pt-4 w-full">
           <ScrollFloat direction="up" duration={0.8} delay={0.4}>
              <p className="mb-6 text-center text-sm font-medium tracking-wide text-muted-foreground uppercase">Quick Actions</p>
@@ -92,8 +112,16 @@ function Overview() {
 
         {loading && <p className="text-center text-sm text-muted-foreground">Loading your workspace…</p>}
 
+        {!loading && dataError && (
+          <p role="alert" className="text-center text-sm text-destructive">{dataError}</p>
+        )}
+
         {!loading && !dataError && pending.length === 0 && logs.length === 0 && (
-          <p className="text-center text-sm text-muted-foreground">No recent activity or approvals yet.</p>
+          <EmptyState
+            headline="Nothing has happened yet."
+            why={`${employeeName} will show activity here as soon as she starts working — approvals, completed tasks, and memory entries all appear on this page.`}
+            actions={[{ label: "Set up her skills", variant: "outline", onClick: () => navigate("/dashboard/skills") }]}
+          />
         )}
 
         {pending.length > 0 && (
@@ -140,17 +168,17 @@ function Overview() {
               }
             >
               <div className="flex flex-col gap-6">
-                <CapacityMeter label="Monthly tasks" used={capacity.tasksUsed} total={capacity.tasksTotal} />
+                <CapacityMeter label="Monthly tasks" used={accountCapacity?.tasks_used ?? 0} total={accountCapacity?.tasks_limit ?? 0} />
                 <CapacityMeter
                   label="Monthly hours"
-                  used={capacity.hoursUsed}
-                  total={capacity.hoursTotal}
+                  used={accountCapacity?.hours_used ?? 0}
+                  total={accountCapacity?.hours_limit ?? 0}
                   tone="var(--chart-2)"
                 />
                 <CapacityMeter
                   label="AI token usage"
-                  used={capacity.tokensUsed}
-                  total={capacity.tokensTotal}
+                  used={0}
+                  total={0}
                   tone="var(--chart-3)"
                   format={(n) => `${(n / 1_000_000).toFixed(2)}M`}
                 />
@@ -169,6 +197,9 @@ function Overview() {
               }
             >
               {dataError && <p role="alert" className="mb-3 text-sm text-destructive">{dataError}</p>}
+              {!loading && !dataError && logs.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No activity recorded yet. {employeeName} will log every step here once she starts working.</p>
+              ) : (
               <ol className="flex flex-col gap-4">
                 {(Array.isArray(logs) ? logs : []).map((e) => (
                   <li key={e.id} className="grid grid-cols-[3.2rem_minmax(0,1fr)] gap-3 border-b border-white/5 pb-3 last:border-0 last:pb-0">
@@ -182,6 +213,7 @@ function Overview() {
                   </li>
                 ))}
               </ol>
+              )}
             </Panel>
           </ScrollFloat>
         </div>
@@ -191,4 +223,5 @@ function Overview() {
   );
 }
 
-export default Overview;
+function OverviewPage() { return <MissionControlErrorBoundary><Overview /></MissionControlErrorBoundary>; }
+export default OverviewPage;

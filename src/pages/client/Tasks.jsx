@@ -1,22 +1,21 @@
 import authService from '@/lib/auth-service';
-import appServices from '@/lib/app-services';
+import { workforceApi } from '@/lib/ikamva/api-client';
 import React, { useEffect, useState } from 'react';
-
 import DashboardLayout from '@/components/client/DashboardLayout';
 import { CheckCircle2, Loader2, Circle, AlertCircle, Calendar, Upload, Download, Paperclip } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
 const COLUMNS = [
-  { key: 'pending',     label: 'Pending',     icon: Circle,       color: 'text-slate-500',  bg: 'bg-slate-100',    dot: 'bg-slate-400' },
-  { key: 'in_progress', label: 'In Progress', icon: Loader2,      color: 'text-blue-600',   bg: 'bg-blue-50',      dot: 'bg-blue-500' },
-  { key: 'completed',   label: 'Completed',   icon: CheckCircle2, color: 'text-green-600',  bg: 'bg-green-50',     dot: 'bg-green-500' },
+  { key: 'pending',     label: 'Pending',     icon: Circle,       color: 'text-slate-400',  bg: 'bg-white/5 border border-white/10',    dot: 'bg-slate-600' },
+  { key: 'in_progress', label: 'In Progress', icon: Loader2,      color: 'text-cyan-400',   bg: 'bg-cyan-500/10 border border-cyan-500/20', dot: 'bg-cyan-500' },
+  { key: 'completed',   label: 'Completed',   icon: CheckCircle2, color: 'text-emerald-400',bg: 'bg-emerald-500/10 border border-emerald-500/20', dot: 'bg-emerald-500' },
 ];
 
 const priorityBadge = {
-  high:   'bg-red-100 text-red-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low:    'bg-gray-100 text-gray-500',
+  high:   'bg-red-500/15 text-red-300 border border-red-500/20',
+  medium: 'bg-amber-500/15 text-amber-300 border border-amber-500/20',
+  low:    'bg-white/10 text-slate-300 border border-white/10',
 };
 
 const categoryLabel = {
@@ -27,20 +26,17 @@ const categoryLabel = {
   other:                'Other',
 };
 
-function FileUploadButton({ taskId, existingFiles = [], onUploaded }) {
+function FileUploadButton({ taskId, existingFiles, onUploaded }) {
   const [uploading, setUploading] = useState(false);
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const { file_url } = await appServices.files.upload({ file });
+    const file_url = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result || '')); reader.onerror = reject; reader.readAsDataURL(file); });
     const newFile = { file_url, file_name: file.name, uploaded_at: new Date().toISOString() };
     const updated = [...existingFiles, newFile];
-    await appServices.records.Task.update(taskId, { client_files: updated });
-    onUploaded(taskId, updated);
-    toast.success('File uploaded successfully');
-    setUploading(false);
+    await workforceApi.updateTask(taskId, { client_files: updated });
     e.target.value = '';
   };
 
@@ -129,19 +125,9 @@ export default function ClientTasks() {
 
   useEffect(() => {
     if (!user?.email) return;
-    appServices.records.Task.filter({ client_email: user.email }, '-created_date')
-      .then(setTasks).finally(() => setLoading(false));
-
-    const unsub = appServices.records.Task.subscribe(event => {
-      if (event.type === 'create' && event.data.client_email === user.email) {
-        setTasks(prev => [event.data, ...prev]);
-      } else if (event.type === 'update') {
-        setTasks(prev => prev.map(t => t.id === event.id ? event.data : t));
-      } else if (event.type === 'delete') {
-        setTasks(prev => prev.filter(t => t.id !== event.id));
-      }
-    });
-    return unsub;
+    workforceApi.listTasks()
+      .then(result => setTasks((result.tasks || []).filter(task => task.payload?.client_email === user.email || task.client_email === user.email)))
+      .finally(() => setLoading(false));
   }, [user?.email]);
 
   const handleUploaded = (taskId, updatedFiles) => {

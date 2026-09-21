@@ -16,6 +16,7 @@ Own the HTTP API, application services, provider adapters, dependency injection,
 ## Work Guidance
 - Keep provider-specific code behind provider interfaces/registries.
 - Keep React-independent business logic in backend modules.
+- Gmail push: `GmailWatchService` manages watch registration and history deltas. The `gmail-push.js` handler always returns 204 to prevent Pub/Sub retry storms. `PUBSUB_TOPIC` env var gates all push behaviour; polling continues when it is unset.
 
 ## Verification
 - `npm run test:backend`

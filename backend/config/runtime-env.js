@@ -16,7 +16,14 @@ const required = (name, value) => {
   return String(value).trim();
 };
 
+export const assertProductionEmailVerification = (env = process.env) => {
+  if (String(env.NODE_ENV || '').toLowerCase() === 'production' && String(env.SKIP_EMAIL_CONFIRMATION || '').toLowerCase() === 'true') {
+    throw new Error('SKIP_EMAIL_CONFIRMATION=true is not permitted in production.');
+  }
+};
+
 export const readWorkerEnvironment = (env = { ...localEnv, ...process.env }) => ({
+  ...(() => { assertProductionEmailVerification(env); return {}; })(),
   supabaseUrl: required('SUPABASE_URL', env.SUPABASE_URL || env.VITE_SUPABASE_URL),
   serviceRoleKey: required('SUPABASE_SERVICE_ROLE_KEY', env.SUPABASE_SERVICE_ROLE_KEY),
   tenantId: required('IKAMVA_TENANT_ID', env.IKAMVA_TENANT_ID),

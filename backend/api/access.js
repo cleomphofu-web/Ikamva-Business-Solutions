@@ -6,7 +6,7 @@ const json = (res, statusCode, payload) => {
   res.end(JSON.stringify(payload));
 };
 
-const getRequestPath = req => new URL(req.url ?? '/', 'http://localhost').pathname;
+const getRequestPath = req => new URL(req.url ?? '/', 'http://127.0.0.1').pathname;
 
 const getBearerToken = req => (req.headers['authorization'] ?? '').replace(/^Bearer\s+/i, '').trim();
 
@@ -36,6 +36,12 @@ export async function handleAccessRequest(req, res) {
   }
 
   const user = authData.user;
+
+  // Email confirmation may be bypassed only by the local development frontend
+  // flag. Production access must remain gated by Supabase's confirmation state.
+  if (String(process.env.NODE_ENV || '').toLowerCase() === 'production' && !user.email_confirmed_at) {
+    return json(res, 403, { error: 'Email verification required', code: 'EMAIL_NOT_VERIFIED' });
+  }
 
   const [{ data: tenantMembership }, { data: clientProfile }, applicationLookup] = await Promise.all([
     supabaseAdmin

@@ -20,6 +20,8 @@ import { createExecutionContainer, createTenantExecutionContainer } from '../con
 import crypto from 'node:crypto';
 import { buildStoredEmployeePrompt } from '../services/EmployeePromptService.js';
 import { extractDocumentText } from '../services/PdfTextExtractor.js';
+import { JobSpecCompiler } from '../services/JobSpecCompiler.js';
+
 
 // Root container — created once, shared across requests.
 let _rootContainer = null;
@@ -136,6 +138,84 @@ export async function handleTaskSubmit(req, res) {
   res.end(JSON.stringify({ task_id: task.id }));
 }
 
+export async function handleTaskList(req, res) {
+  try { const { tenantId } = await tenantFromRequest(req); const scoped = createTenantExecutionContainer({ tenantId, rootContainer: getRootContainer() }); return json(res, 200, { tasks: await scoped.resolve('repositories').taskQueue.listRecent(100) }); }
+  catch (error) { return json(res, error.status || 500, { error: error.message || 'Tasks unavailable' }); }
+}
+
+export async function handleEmployeeIntentParse(req, res) {
+  let tenantId;
+  try {
+    const auth = await tenantFromRequest(req);
+    tenantId = auth.tenantId;
+  } catch (error) {
+    return sendError(res, error.status || 401, error.message || 'Authentication required');
+  }
+
+  let body;
+  try { body = await readBody(req); } catch { return sendError(res, 400, 'Invalid JSON body'); }
+  const intent = String(body?.intent || '').trim();
+  if (!intent) return sendError(res, 400, 'Request body must include a non-empty "intent" string');
+  const text = intent.toLowerCase();
+  const skills = [];
+  if (/quote|invoice|pricing|estimate/.test(text)) skills.push('quotes_and_invoicing');
+  if (/email|inbox|customer|support|reply/.test(text)) skills.push('email_management');
+  if (/calendar|meeting|appointment|schedule/.test(text)) skills.push('calendar_management');
+  if (!skills.length) skills.push('email_management');
+
+  const compiledJobSpec = JobSpecCompiler.compile({
+    description: intent,
+    capabilities: skills,
+  });
+
+  const scoped = createTenantExecutionContainer({ tenantId, rootContainer: getRootContainer() });
+  const repos = scoped.resolve('repositories');
+
+  // Check real tenant integrations
+  let connectedIntegrations = [];
+  try {
+    connectedIntegrations = await repos.tenantIntegrations.list();
+  } catch (err) {
+    console.warn('[handleEmployeeIntentParse] Could not list integrations:', err?.message);
+  }
+
+  const integrationStatus = JobSpecCompiler.checkIntegrations(compiledJobSpec, connectedIntegrations);
+
+  // If tenant already has an employee record, persist the compiled job_spec into configuration
+  try {
+    const existingEmployee = await repos.employees.findByTenant();
+    if (existingEmployee?.id) {
+      const mergedConfig = {
+        ...(existingEmployee.configuration || {}),
+        job_spec: compiledJobSpec,
+        skills,
+      };
+      await repos.employees.update(existingEmployee.id, {
+        configuration: mergedConfig,
+        schedule: compiledJobSpec.schedule || existingEmployee.schedule,
+      });
+    }
+  } catch (empErr) {
+    console.warn('[handleEmployeeIntentParse] Failed to persist job_spec to employee:', empErr?.message);
+  }
+
+  return json(res, 200, {
+    skills,
+    integrations_needed: compiledJobSpec.tools_required,
+    integration_check: integrationStatus,
+    job_spec: compiledJobSpec,
+    industry_hint: /retail|shop|store/.test(text) ? 'retail' : /health|clinic/.test(text) ? 'healthcare' : 'professional_services',
+    personality_hint: /friendly|warm|casual/.test(text) ? 'warm' : 'professional',
+    role_hint: /quote|invoice|pricing/.test(text) ? 'Customer Operations Specialist' : 'Operations Assistant',
+  });
+}
+
+
+export async function handleTaskUpdate(req, res) {
+  try { const { tenantId } = await tenantFromRequest(req); const id = decodeURIComponent(req.url.split('/').pop().split('?')[0]); const body = await readBody(req); const scoped = createTenantExecutionContainer({ tenantId, rootContainer: getRootContainer() }); const task = await scoped.resolve('repositories').taskQueue.findById(id); if (!task) return sendError(res, 404, 'Task not found'); const updated = await scoped.resolve('repositories').taskQueue.updatePayload(id, { ...(task.payload || {}), ...(body.payload || {}) }); return json(res, 200, { task: updated }); }
+  catch (error) { return json(res, error.status || 500, { error: error.message || 'Task update failed' }); }
+}
+
 async function tenantFromRequest(req) {
   const jwt = (req.headers['authorization'] ?? '').replace(/^Bearer\s+/i, '').trim();
   if (!jwt) throw Object.assign(new Error('Missing Authorization header'), { status: 401 });
@@ -160,28 +240,60 @@ export async function handleEmployeeRequest(req, res) {
     const employee = await employees.findById(id);
     if (!employee) return json(res, 404, { error: 'Employee not found' });
     if (req.method === 'GET' && action === 'memory') {
-      const page = Math.max(0, Number(new URL(req.url, 'http://localhost').searchParams.get('page') || 0));
-      const limit = Math.min(100, Math.max(1, Number(new URL(req.url, 'http://localhost').searchParams.get('limit') || 20)));
+      const page = Math.max(0, Number(new URL(req.url, 'http://127.0.0.1').searchParams.get('page') || 0));
+      const limit = Math.min(100, Math.max(1, Number(new URL(req.url, 'http://127.0.0.1').searchParams.get('limit') || 20)));
       const memories = await scoped.resolve('repositories').employeeMemory.listByEmployee(id, { limit, offset: page * limit });
       return json(res, 200, { memories, page, limit });
     }
     if (req.method === 'PATCH' && path.endsWith('/regenerate-prompt')) {
-      const refreshed = await employees.update(id, { configuration: { ...(employee.configuration || {}), system_prompt: buildStoredEmployeePrompt(employee) } });
+      const refreshed = await employees.update(id, { configuration: { ...(employee.configuration || {}), system_prompt: buildStoredEmployeePrompt(employee, { audience: 'account_owner' }) } });
       return json(res, 200, { employee: refreshed });
     }
     if (req.method === 'PATCH' && path.endsWith('/activate')) {
-      const updated = await employees.update(id, { configuration: { ...(employee.configuration || {}), system_prompt: buildStoredEmployeePrompt(employee) } });
+      const updated = await employees.update(id, { configuration: { ...(employee.configuration || {}), system_prompt: buildStoredEmployeePrompt(employee, { audience: 'account_owner' }) } });
       const activated = await employees.activate(id);
       return json(res, 200, { employee: activated || updated });
     }
     if (req.method === 'PATCH' || (req.method === 'POST' && req.url.endsWith('/decision'))) {
       const fields = await readBody(req);
       const merged = { ...employee, ...fields, configuration: { ...(employee.configuration || {}), ...(fields.configuration || {}) } };
-      if (employee.lifecycle_status === 'active') merged.configuration.system_prompt = buildStoredEmployeePrompt(merged);
+      if (employee.lifecycle_status === 'active') merged.configuration.system_prompt = buildStoredEmployeePrompt(merged, { audience: 'account_owner' });
       return json(res, 200, { employee: await employees.update(id, { ...fields, configuration: merged.configuration }) });
     }
     return json(res, 405, { error: 'Method not allowed' });
   } catch (error) { console.error('[API] Employee request failed:', error); return json(res, error.status || 500, { error: error.message || 'Employee request failed' }); }
+}
+
+export async function handleSpecialistRequest(req, res) {
+  try {
+    const { tenantId } = await tenantFromRequest(req);
+    const scoped = createTenantExecutionContainer({ tenantId, rootContainer: getRootContainer() });
+    const employee = await scoped.resolve('repositories').employees.findByTenant();
+    if (!employee) return json(res, 404, { error: 'Employee not found' });
+    const specialists = scoped.resolve('repositories').specialists;
+    const path = req.url.split('?')[0];
+
+    if (req.method === 'GET' && (path === '/api/v1/workforce/specialists' || path === '/api/v1/workforce/specialists/')) {
+      let list = await specialists.listByEmployee(employee.id);
+      if (!list || list.length === 0) {
+        const integrations = await scoped.resolve('repositories').tenantIntegrations.list();
+        list = await specialists.seedDefaults(employee.id, integrations);
+      }
+      return json(res, 200, { specialists: list });
+    }
+
+    if (req.method === 'PATCH' && path.startsWith('/api/v1/workforce/specialists/')) {
+      const id = decodeURIComponent(path.split('/').pop());
+      const body = await readBody(req);
+      const updated = await specialists.update(id, body);
+      return json(res, 200, { specialist: updated });
+    }
+
+    return json(res, 405, { error: 'Method not allowed' });
+  } catch (error) {
+    console.error('[API] Specialist request failed:', error);
+    return json(res, error.status || 500, { error: error.message || 'Specialist request failed' });
+  }
 }
 
 export async function handleKnowledgeIngest(req, res) {
@@ -228,7 +340,7 @@ export async function handleActivityLogs(req, res) {
   try {
     const { tenantId } = await tenantFromRequest(req);
     const scoped = createTenantExecutionContainer({ tenantId, rootContainer: getRootContainer() });
-    const limit = Math.min(100, Math.max(1, Number(new URL(req.url, 'http://localhost').searchParams.get('limit') || 50)));
+    const limit = Math.min(100, Math.max(1, Number(new URL(req.url, 'http://127.0.0.1').searchParams.get('limit') || 50)));
     const logs = await scoped.resolve('repositories').employeeActivityLogs.list({ tenantId, limit });
     return json(res, 200, { logs });
   } catch (error) { return json(res, error.status || 500, { error: error.message || 'Activity logs unavailable' }); }
@@ -251,10 +363,18 @@ export async function handleApprovals(req, res) {
       const existingApproval = await approvalRepo.findById(id);
       if (!existingApproval) return json(res, 404, { error: 'Approval not found' });
 
+      if (body.edited_text && existingApproval.action_payload) {
+        const edited = await approvalRepo.updateActionPayload(id, { ...existingApproval.action_payload, text: body.edited_text });
+        if (!edited) return json(res, 409, { error: 'Already actioned' });
+        existingApproval.action_payload = edited.action_payload;
+      }
+
       const updated = await approvalRepo.updateStatus(id, body.status, user.id, body.review_note || null);
+      if (!updated) return json(res, 409, { error: 'Already actioned' });
 
       if (existingApproval.task_id) {
         const task = await repos.taskQueue.findById(existingApproval.task_id);
+        if (task?.parent_task_id) await scoped.resolve('auditService').emit({ task, eventType: body.status === 'approved' ? 'quote_approved' : 'quote_rejected', message: `Quote ${body.status}.`, metadata: { approval_id: id, reviewed_by: user.id }, createdBy: user.id });
         if (task && task.status === 'awaiting_human') {
           const workerEngine = scoped.resolve('workerEngine');
           if (body.status === 'approved') {
@@ -286,6 +406,25 @@ export async function handleIntegrations(req, res) {
     const scoped = createTenantExecutionContainer({ tenantId, rootContainer: getRootContainer() });
     return json(res, 200, { integrations: await scoped.resolve('repositories').tenantIntegrations.list() });
   } catch (error) { return json(res, error.status || 500, { error: error.message || 'Integrations unavailable' }); }
+}
+
+export async function handleChainStatus(req, res) {
+  try {
+    const { tenantId } = await tenantFromRequest(req);
+    const parentTaskId = req.url.split('?')[0].split('/').at(-1);
+    const scoped = createTenantExecutionContainer({ tenantId, rootContainer: getRootContainer() });
+    const status = await scoped.resolve('taskChainService').getChainStatus(parentTaskId);
+    if (!status) return json(res, 404, { error: 'Chain not found' });
+    return json(res, 200, status);
+  } catch (error) { return json(res, error.status || 500, { error: error.message || 'Chain status unavailable' }); }
+}
+
+export async function handleChainList(req, res) {
+  try {
+    const { tenantId } = await tenantFromRequest(req);
+    const scoped = createTenantExecutionContainer({ tenantId, rootContainer: getRootContainer() });
+    return json(res, 200, { chains: await scoped.resolve('taskChainService').listChains() });
+  } catch (error) { return json(res, error.status || 500, { error: error.message || 'Chains unavailable' }); }
 }
 
 function json(res, statusCode, body) {

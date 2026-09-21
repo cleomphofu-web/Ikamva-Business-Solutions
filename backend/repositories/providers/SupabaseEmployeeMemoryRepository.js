@@ -1,8 +1,9 @@
 export class SupabaseEmployeeMemoryRepository {
   constructor(supabase) { this.db = supabase; }
-  async listByEmployee(tenantId, employeeId, { limit = 20, offset = 0, threadId } = {}) {
+  async listByEmployee(tenantId, employeeId, { limit = 20, offset = 0, threadId, source } = {}) {
     let query = this.db.from('ai_employee_memory').select('*').eq('tenant_id', tenantId).eq('employee_id', employeeId);
     if (threadId) query = query.eq('thread_id', threadId);
+    if (source) query = query.eq('source', source);
     const { data, error } = await query.order('created_at', { ascending: false }).range(offset, offset + limit - 1);
     if (error) throw error; return data || [];
   }

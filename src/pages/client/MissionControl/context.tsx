@@ -74,7 +74,8 @@ function ContextPage() {
             }}
           >
             <UploadCloud className="size-6 text-primary" />
-            <p className="mt-4 font-medium">Drag documents here</p>
+          <p className="mt-4 font-medium">Drag documents here</p>
+          <p className="mt-2 text-xs text-amber-800" role="note">Everything you upload may be shared with people who contact your Employee. Do not upload confidential or personal data.</p>
             <p className="mt-1.5 text-sm text-muted-foreground">PDF · DOCX · TXT · CSV</p>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               <Button

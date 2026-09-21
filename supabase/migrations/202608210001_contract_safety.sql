@@ -11,16 +11,30 @@ as $$
 declare
   updated_profile public.client_profiles;
 begin
+  -- Atomically increment whichever quota columns are in use.
+  -- pack_size / tasks_used_this_cycle: new task-pack schema (Section 4).
+  -- monthly_task_limit / tasks_used_this_month: legacy monthly quota schema.
+  -- The WHERE guard checks the applicable limit for the row so the RPC never
+  -- silently no-ops for pack-schema profiles (which previously caused the
+  -- fallback read-modify-write path to always fire, defeating atomicity).
   update public.client_profiles
   set tasks_used_this_month = tasks_used_this_month + 1,
+      tasks_used_this_cycle = tasks_used_this_cycle + 1,
       updated_at = now()
   where id = profile_id
-    and tasks_used_this_month < monthly_task_limit
+    and (
+      -- pack schema: respect pack_size cap
+      (pack_size is not null and tasks_used_this_cycle < pack_size)
+      or
+      -- legacy schema: respect monthly_task_limit cap
+      (pack_size is null and tasks_used_this_month < monthly_task_limit)
+    )
   returning * into updated_profile;
 
   return updated_profile;
 end;
 $$;
+
 
 create index if not exists tenant_users_user_id_idx
 on public.tenant_users (user_id);

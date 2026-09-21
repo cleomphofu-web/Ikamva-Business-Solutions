@@ -13,7 +13,7 @@ const faqs = [
   },
   {
     question: "Is my data and business information kept confidential?",
-    answer: "Absolutely. All Fullscope VAs sign strict NDAs and confidentiality agreements before working with any client. We use secure, encrypted platforms for all communication and file sharing, and we never share your information with third parties."
+    answer: "Absolutely. All Ikamva VAs sign strict NDAs and confidentiality agreements before working with any client. We use secure, encrypted platforms for all communication and file sharing, and we never share your information with third parties."
   },
   {
     question: "What happens if I'm not happy with my assigned VA?",
@@ -95,7 +95,7 @@ export default function FAQ() {
             <span className="text-primary">questions</span>
           </h2>
           <p className="mt-5 text-muted-foreground text-lg">
-            Everything you need to know about working with Fullscope Business Solutions.
+            Everything you need to know about working with Ikamva Business Solutions.
           </p>
         </motion.div>
 

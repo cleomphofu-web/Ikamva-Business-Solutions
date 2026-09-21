@@ -5,8 +5,9 @@ module.exports = {
   theme: {
   	extend: {
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['"Inter"', '"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         display: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        hero: ['"Sigmar"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
   		borderRadius: {
   			lg: 'var(--radius)',

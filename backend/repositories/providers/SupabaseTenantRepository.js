@@ -45,6 +45,8 @@ export class SupabaseTenantRepository {
     return data ?? null;
   }
   async listActive() { const { data, error } = await this.db.from('client_profiles').select('tenant_id').eq('status', 'active'); if (error) throw error; return data || []; }
+  async findByWebhookToken(token) { const { data, error } = await this.db.from('tenants').select('id').eq('webhook_token', token).maybeSingle(); if (error) throw error; return data ?? null; }
+  async consumeProviderCall(tenantId, limit) { const { data, error } = await this.db.rpc('consume_tenant_provider_call', { p_tenant_id: tenantId, p_limit: limit }); if (error) throw error; return data === true; }
 
   async incrementTasksUsed(clientProfileId) {
     // Use rpc for atomic increment, falling back to read-modify-write
@@ -56,9 +58,14 @@ export class SupabaseTenantRepository {
       // fallback: read-modify-write (safe for low concurrency)
       const profile = await this.findClientProfileById(clientProfileId);
       if (!profile) return null;
+      const currentUsed = Number(profile.tasks_used_this_cycle ?? profile.tasks_used_this_month ?? 0);
       const { data: updated, error: updateError } = await this.db
         .from('client_profiles')
-        .update({ tasks_used_this_month: (profile.tasks_used_this_month ?? 0) + 1, updated_at: new Date().toISOString() })
+        .update({
+          tasks_used_this_month: currentUsed + 1,
+          tasks_used_this_cycle: currentUsed + 1,
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', clientProfileId)
         .select()
         .single();

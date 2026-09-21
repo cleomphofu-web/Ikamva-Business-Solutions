@@ -19,6 +19,7 @@ export class EmailWorker extends BaseWorker {
   }
 
   async execute({ provider, payload, task }) {
+    if (payload.requires_approval) return { provider: this.providerName, output: { status: 'awaiting_approval', content: payload.text, action: { to: payload.to, subject: payload.subject, text: payload.text, html: payload.html || null } } };
     if (typeof provider?.send !== 'function') throw new Error('Email provider must implement send.');
     return provider.send({ ...payload, metadata: { ...payload.metadata, task_id: task?.id ?? null } });
   }

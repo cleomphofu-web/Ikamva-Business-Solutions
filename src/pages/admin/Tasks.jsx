@@ -15,15 +15,15 @@ const PRIORITIES = ['low', 'medium', 'high'];
 const CATEGORIES = ['schedule_management', 'email_management', 'document_preparation', 'communication_hub', 'other'];
 
 const statusColors = {
-  pending:     'bg-slate-100 text-slate-700',
-  in_progress: 'bg-blue-100 text-blue-700',
-  completed:   'bg-green-100 text-green-700',
+  pending:     'bg-white/10 text-slate-300 border border-white/10',
+  in_progress: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/20',
+  completed:   'bg-emerald-500/15 text-emerald-300 border border-emerald-500/20',
 };
 
 const priorityColors = {
-  high:   'bg-red-100 text-red-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low:    'bg-gray-100 text-gray-500',
+  high:   'bg-red-500/15 text-red-300 border border-red-500/20',
+  medium: 'bg-amber-500/15 text-amber-300 border border-amber-500/20',
+  low:    'bg-white/10 text-slate-300 border border-white/10',
 };
 
 const empty = { client_email: '', title: '', description: '', status: 'pending', priority: 'medium', category: 'other', due_date: '', va_name: '', notes: '' };

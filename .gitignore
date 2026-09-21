@@ -32,3 +32,6 @@ dist-ssr
 .vite
 
 supabase/.temp/
+localhost.har
+scratch/
+.gemini/

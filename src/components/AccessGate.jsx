@@ -6,27 +6,30 @@ import authService from '@/lib/auth-service';
 import { accessApi, employeeApi } from '@/lib/ikamva/api-client';
 
 const LoadingScreen = () => (
-  <div className="fixed inset-0 flex items-center justify-center">
-    <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-950/15 border-t-emerald-950" />
+  <div className="fixed inset-0 flex items-center justify-center bg-background">
+    <div className="h-8 w-8 animate-spin rounded-full border-4 border-white/10 border-t-primary" />
   </div>
 );
 
 const AccessErrorScreen = ({ onRetry }) => (
   <div className="min-h-screen bg-background px-6 py-12">
     <div className="mx-auto flex min-h-[calc(100vh-6rem)] max-w-md flex-col justify-center">
-      <div className="rounded-[2rem] border border-emerald-950/10 bg-white/85 p-8 text-center shadow-[0_30px_110px_-70px_rgba(23,55,39,0.45)] backdrop-blur-xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-900/55">Access check failed</p>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-emerald-950">We could not confirm your workspace access.</h1>
-        <p className="mt-3 text-sm leading-6 text-emerald-950/66">
-          Your session is still active. Please retry the access check.
-        </p>
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-6 inline-flex h-10 items-center justify-center rounded-full bg-emerald-950 px-5 text-sm font-medium text-white transition hover:bg-emerald-900"
-        >
-          Retry
-        </button>
+      <div className="glass-panel p-8 text-center shadow-2xl relative overflow-hidden">
+        <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
+        <div className="relative z-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Access check failed</p>
+          <h1 className="mt-3 text-2xl font-display font-semibold tracking-tight text-foreground">We could not confirm your workspace access.</h1>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            Your session is still active. Please retry the access check.
+          </p>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-primary px-6 text-sm font-medium text-primary-foreground hover-scale transition"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     </div>
   </div>

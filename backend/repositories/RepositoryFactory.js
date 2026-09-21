@@ -70,7 +70,17 @@ export class TenantScopedRepositories {
     this.companyKnowledge = new TenantScopedCompanyKnowledgeRepository(tenantId, systemRepositories.companyKnowledge);
     this.approvals = new TenantScopedApprovalRepository(tenantId, systemRepositories.approvals);
     this.tenantIntegrations = new TenantScopedIntegrationRepository(tenantId, systemRepositories.tenantIntegrations);
+    this.specialists = new TenantScopedSpecialistRepository(tenantId, systemRepositories.specialists);
   }
+}
+
+class TenantScopedSpecialistRepository {
+  constructor(tenantId, repository) { this.tenantId = tenantId; this.repository = repository; }
+  listByEmployee(employeeId) { return this.repository.listByEmployee(this.tenantId, employeeId); }
+  findByType(employeeId, specialistType) { return this.repository.findByType(this.tenantId, employeeId, specialistType); }
+  create(fields) { return this.repository.create(this.tenantId, fields); }
+  update(id, fields) { return this.repository.update(this.tenantId, id, fields); }
+  seedDefaults(employeeId, integrations = []) { return this.repository.seedDefaults(this.tenantId, employeeId, integrations); }
 }
 
 class TenantScopedEmployeeActivityLogRepository {
@@ -108,6 +118,7 @@ class TenantScopedApprovalRepository {
   findById(id) { return this.repository.findById(this.tenantId, id); }
   findByTaskId(taskId) { return this.repository.findByTaskId(this.tenantId, taskId); }
   updateStatus(id, status, reviewedBy, reviewNote) { return this.repository.updateStatus(this.tenantId, id, status, reviewedBy, reviewNote); }
+  updateActionPayload(id, actionPayload) { return this.repository.updateActionPayload(this.tenantId, id, actionPayload); }
 }
 
 class TenantScopedIntegrationRepository {
@@ -121,6 +132,7 @@ class TenantScopedIntegrationRepository {
 class TenantScopedContactRepository {
   constructor(tenantId, repository) { this.tenantId = tenantId; this.repository = repository; }
   findById(id) { return this.repository.findById(id, this.tenantId); }
+  findByEmail(email) { return this.repository.findByEmail(email, this.tenantId); }
   list() { return this.repository.list(this.tenantId); }
   upsert(input) { return this.repository.upsert({ ...input, tenant_id: this.tenantId }); }
 }
@@ -154,6 +166,13 @@ class TenantScopedTaskQueueRepository {
   async findById(id) {
     return onlyTenant(await this.repository.findById(id, this.tenantId), this.tenantId);
   }
+  async updatePayload(id, payload) { return this.repository.updatePayload(id, this.tenantId, payload); }
+
+  async listByParentId(parentTaskId) {
+    return (await this.repository.listByParentId(parentTaskId, this.tenantId)).filter(task => task.tenant_id === this.tenantId);
+  }
+  async listByType(taskType) { return (await this.repository.listByType(taskType, this.tenantId)).filter(task => task.tenant_id === this.tenantId); }
+  async listRecent(limit = 100) { return this.repository.listRecent(this.tenantId, limit); }
 
   async findByIdempotencyKey(...args) {
     const idempotencyKey = args.length === 1 ? args[0] : args[1];
@@ -234,9 +253,11 @@ class TenantScopedSOPRepository {
     return this.repository.ensureDefaultChat({ ...input, tenantId: this.tenantId });
   }
   async ensureDefaultEmailWorkflow(input = {}) { return this.repository.ensureDefaultEmailWorkflow({ ...input, tenantId: this.tenantId }); }
+  async ensureDefaultShiftStart(input = {}) { return this.repository.ensureDefaultShiftStart({ ...input, tenantId: this.tenantId }); }
 }
 
 class TenantScopedTenantRepository {
+
   constructor(tenantId, repository) {
     this.tenantId = tenantId;
     this.repository = repository;

@@ -23,13 +23,18 @@ export async function handleDevRequest(req, res) {
     const email = { ...DEFAULT_EMAIL, ...(body || {}) };
     const scoped = createTenantExecutionContainer({ tenantId: membership.tenant_id, rootContainer: getRootContainer() });
     const integration = await scoped.resolve('repositories').tenantIntegrations.findByProvider('gmail');
-    if (!integration?.credential_reference) return json(res, 409, { error: 'Connect Gmail before running the triage test.' });
+    if (!integration?.credential_reference && process.env.MOCK_GMAIL !== 'true') return json(res, 409, { error: 'Connect Gmail before running the triage test.' });
+    const profileId = (await supabaseAdmin.from('client_profiles').select('id').eq('tenant_id', membership.tenant_id).maybeSingle()).data?.id;
+    const profile = profileId ? await scoped.resolve('repositories').tenants.findClientProfileById(profileId) : null;
+    const sops = scoped.resolve('repositories').sops;
+    if (typeof sops.ensureDefaultEmailWorkflow === 'function') await sops.ensureDefaultEmailWorkflow({ clientProfileId: profile?.id, taskType: 'email_triage' });
     const task = await scoped.resolve('queueService').enqueueTask({
       tenant_id: membership.tenant_id,
+      client_profile_id: profile?.id || null,
       task_type: 'email_triage',
       idempotency_key: `dev_email_triage:${membership.tenant_id}:${email.thread_id}`,
       payload: {
-        credential_reference: integration.credential_reference,
+        credential_reference: integration?.credential_reference || 'mock-gmail-credential',
         message_id: `dev_${email.thread_id}`,
         sender: email.sender,
         subject: email.subject,

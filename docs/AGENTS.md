@@ -19,3 +19,4 @@ Docs describe stable contracts and current operating rules; source code remains 
 
 ## Child DOX Index
 - `adr/` — architecture decision records.
+- `product/` — imported product, technical, schema, flow, implementation, and UI specifications.

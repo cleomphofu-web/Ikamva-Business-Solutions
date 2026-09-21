@@ -14,6 +14,7 @@ Repositories own database reads/writes; callers do not bypass them.
 ## Work Guidance
 - Match existing factory and dependency-injection patterns.
 - Do not place provider SDK calls in repositories.
+- `CompanyKnowledgeRepository.search` and `searchByEmbedding` require `tenantId` as the first argument and support optional `sourceFilter` arrays.
 
 ## Verification
 - `npm run test:backend`

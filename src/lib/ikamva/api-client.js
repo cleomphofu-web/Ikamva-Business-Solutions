@@ -9,16 +9,30 @@ import { supabase } from '@/lib/supabase-client';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
+export class UnauthorizedError extends Error {
+  constructor(message = 'Not authenticated. Sign in before calling the API.') {
+    super(message);
+    this.name = 'UnauthorizedError';
+    this.code = 'UNAUTHORIZED';
+    this.status = 401;
+  }
+}
+
+const isValidToken = token => typeof token === 'string' && token.trim() !== '' && token !== 'undefined' && token !== 'null';
+
 async function getAuthHeader({ refresh = false, token } = {}) {
-  if (token) {
+  if (token !== undefined && !isValidToken(token)) {
+    throw new UnauthorizedError();
+  }
+  if (isValidToken(token)) {
     return { Authorization: `Bearer ${token}` };
   }
   const response = refresh
     ? await supabase.auth.refreshSession()
     : await supabase.auth.getSession();
   const { data: { session } } = response;
-  if (!session?.access_token) {
-    throw new Error('Not authenticated. Sign in before calling the API.');
+  if (!isValidToken(session?.access_token)) {
+    throw new UnauthorizedError();
   }
   return { Authorization: `Bearer ${session.access_token}` };
 }
@@ -86,14 +100,19 @@ export const workforceApi = {
   async getChatHistory({ signal } = {}) {
     return request('/workforce/chat/history', { signal });
   },
+  async listChains({ signal } = {}) { return request('/workforce/chains', { signal }); },
+  async getChainStatus(parentTaskId, { signal } = {}) { return request(`/workforce/chains/${encodeURIComponent(parentTaskId)}`, { signal }); },
   async ingestKnowledge({ content = null, content_base64 = null, mime_type, source_file, title, fileType, metadata }) { return request('/workforce/knowledge/ingest', { method: 'POST', body: { content: content ?? content_base64, title, fileType, metadata, source_file, mime_type } }); },
   async listKnowledge() { return request('/workforce/knowledge'); },
   async listActivityLogs({ limit = 50, signal } = {}) { return request(`/workforce/activity-logs?limit=${limit}`, { signal }); },
+  async listTasks({ signal } = {}) { return request('/workforce/tasks', { signal }); },
+  async updateTask(id, payload) { return request(`/workforce/tasks/${encodeURIComponent(id)}`, { method: 'PATCH', body: { payload } }); },
   async listApprovals({ signal } = {}) { return request('/workforce/approvals', { signal }); },
-  async decideApproval(id, status) { return request(`/workforce/approvals/${encodeURIComponent(id)}/decision`, { method: 'POST', body: { status } }); },
+  async decideApproval(id, status, options = {}) { return request(`/workforce/approvals/${encodeURIComponent(id)}/decision`, { method: 'POST', body: { status, ...options } }); },
   async listIntegrations({ signal } = {}) { return request('/workforce/integrations', { signal }); },
   async connectGmail(returnTo = '/dashboard/tools') { return request(`/integrations/gmail/connect?return_to=${encodeURIComponent(returnTo)}`); },
   async disconnectGmail() { return request('/integrations/gmail/disconnect', { method: 'POST' }); },
+  async getIntegrationStatus({ signal } = {}) { return request('/integrations/status', { signal }); },
 };
 
 export const employeeApi = {
@@ -101,7 +120,17 @@ export const employeeApi = {
   async create(fields) { return request('/workforce/employees', { method: 'POST', body: fields }); },
   async update(id, fields) { return request(`/workforce/employees/${encodeURIComponent(id)}`, { method: 'PATCH', body: fields }); },
   async activate(id) { return request(`/workforce/employees/${encodeURIComponent(id)}/activate`, { method: 'PATCH' }); },
+  async parseIntent(intent) { return request('/workforce/employees/parse-intent', { method: 'POST', body: { intent } }); },
   async memory(id, { page = 0, limit = 20 } = {}) { return request(`/workforce/employees/${encodeURIComponent(id)}/memory?page=${page}&limit=${limit}`); },
+};
+
+export const specialistApi = {
+  async list({ signal } = {}) { return request('/workforce/specialists', { signal }); },
+  async update(id, fields) { return request(`/workforce/specialists/${encodeURIComponent(id)}`, { method: 'PATCH', body: fields }); },
+};
+
+export const accountOpsApi = {
+  async summary({ signal } = {}) { return request('/crm/accounts/summary', { signal }); },
 };
 
 // ─── Access / Applications API ────────────────────────────────────────────────

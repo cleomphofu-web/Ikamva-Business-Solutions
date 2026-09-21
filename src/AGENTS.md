@@ -16,6 +16,9 @@ Own the browser application, routes, presentation state, and application API cli
 ## Work Guidance
 - Show explicit loading, empty, and error states.
 - Preserve tenant and role boundaries enforced by backend APIs.
+- Form inputs use explicit high-contrast text (#fafaf9) and accent caret colors (#fcfc03) to prevent browser autofill contrast issues.
+- All public and internal branding must use Ikamva Business Solutions (or Ikamva), not legacy template names.
+- APP_FLOW.md spec routes that differ from implemented paths are maintained as `<Navigate>` aliases in `App.jsx`. Do not remove them — they preserve external-link and bookmark compatibility. The alias map lives in `docs/product/APP_FLOW.md` Screen Inventory.
 
 ## Verification
 - `npm run build`

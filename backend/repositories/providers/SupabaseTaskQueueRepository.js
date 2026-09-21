@@ -31,6 +31,18 @@ export class SupabaseTaskQueueRepository {
     this.db = supabase;
   }
 
+  async enqueueEmailTriageTask(input) {
+    const { data, error } = await this.db.rpc('enqueue_email_triage_task', {
+      p_tenant_id: input.tenant_id,
+      p_client_profile_id: input.client_profile_id ?? null,
+      p_message_id: input.message_id,
+      p_payload: input.payload ?? {},
+      p_idempotency_key: input.idempotency_key,
+    });
+    if (error) throw error;
+    return Array.isArray(data) ? (data[0] ?? null) : data;
+  }
+
   async findById(id, tenantId) {
     let query = this.db
       .from('task_queue')
@@ -41,6 +53,23 @@ export class SupabaseTaskQueueRepository {
     if (error) throw error;
     return data ?? null;
   }
+  async updatePayload(id, tenantId, payload) { const { data, error } = await this.db.from('task_queue').update({ payload, updated_at: new Date().toISOString() }).eq('id', id).eq('tenant_id', tenantId).select().single(); if (error) throw error; return data; }
+
+  async listByParentId(parentTaskId, tenantId) {
+    let query = this.db.from('task_queue').select('*').eq('parent_task_id', parentTaskId).order('step_index', { ascending: true });
+    if (tenantId) query = query.eq('tenant_id', tenantId);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data ?? [];
+  }
+  async listByType(taskType, tenantId) {
+    let query = this.db.from('task_queue').select('*').eq('task_type', taskType).order('created_at', { ascending: false });
+    if (tenantId) query = query.eq('tenant_id', tenantId);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data ?? [];
+  }
+  async listRecent(tenantId, limit = 100) { const { data, error } = await this.db.from('task_queue').select('*').eq('tenant_id', tenantId).order('created_at', { ascending: false }).limit(limit); if (error) throw error; return data || []; }
 
   async findByIdempotencyKey(tenantId, idempotencyKey) {
     const { data, error } = await this.db
@@ -66,6 +95,10 @@ export class SupabaseTaskQueueRepository {
       normalized_payload: input.normalized_payload ?? {},
       retry_count: input.retry_count ?? 0,
       scheduled_for: input.scheduled_for ?? now,
+      parent_task_id: input.parent_task_id ?? null,
+      step_index: input.step_index ?? 0,
+      step_name: input.step_name ?? null,
+      chain_config: input.chain_config ?? null,
     };
 
     try {
@@ -125,15 +158,9 @@ export class SupabaseTaskQueueRepository {
     return this.updateStatus(id, patch.status, patch);
   }
 
-  async recoverExpiredLocks({ timeoutMinutes = 10, tenantId } = {}) {
+  async recoverExpiredLocks({ timeoutMinutes = 5, maxRetries = 3, tenantId } = {}) {
     const cutoff = new Date(Date.now() - timeoutMinutes * 60 * 1000).toISOString();
-    let query = this.db
-      .from('task_queue')
-      .update({ status: TaskStatuses.PENDING, locked_at: null, locked_by: null, updated_at: new Date().toISOString() })
-      .eq('status', TaskStatuses.PROCESSING)
-      .lt('locked_at', cutoff);
-    if (tenantId) query = query.eq('tenant_id', tenantId);
-    const { data, error } = await query.select();
+    const { data, error } = await this.db.rpc('recover_expired_tasks', { p_tenant_id: tenantId, p_locked_before: cutoff, p_max_retries: maxRetries, p_now: new Date().toISOString(), p_worker_id: 'recovery' });
     if (error) throw error;
     return data ?? [];
   }

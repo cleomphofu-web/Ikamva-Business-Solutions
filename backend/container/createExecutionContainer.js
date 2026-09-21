@@ -11,14 +11,21 @@ import { QueueService } from '../services/QueueService.js';
 import { QuotaService } from '../services/QuotaService.js';
 import { SOPService } from '../services/SOPService.js';
 import { BaseWorker } from '../workers/BaseWorker.js';
+import { ShiftStartWorker } from '../workers/ShiftStartWorker.js';
 import { EmailWorker } from '../workers/EmailWorker.js';
+
 import { EmailTriageWorker } from '../workers/EmailTriageWorker.js';
 import { EmailResponseWorker } from '../workers/EmailResponseWorker.js';
 import { WorkerEngine } from '../workers/WorkerEngine.js';
 import { WorkerRegistry } from '../workers/WorkerRegistry.js';
+import { ChainStepWorker } from '../workers/ChainStepWorker.js';
 import { EmbeddingService } from '../services/EmbeddingService.js';
 import { GmailMessageService } from '../services/GmailMessageService.js';
+import { GmailWatchService } from '../services/GmailWatchService.js';
+import { ProviderUsageService } from '../services/ProviderUsageService.js';
 import { ServiceContainer } from './ServiceContainer.js';
+import { TaskChainService } from '../services/TaskChainService.js';
+import { TaskChainStateRepository } from '../repositories/TaskChainStateRepository.js';
 
 /**
  * Creates the root dependency-injection container.
@@ -34,6 +41,7 @@ export const createExecutionContainer = ({
   supabaseAdmin,
 } = {}) => {
   const container = new ServiceContainer();
+  container.registerValue('supabaseAdmin', supabaseAdmin || null);
 
   // Resolve provider name from env
   const providerName = process.env.REPOSITORY_PROVIDER || 'memory';
@@ -54,7 +62,13 @@ export const createExecutionContainer = ({
     .registerValue('clock', clock || (() => new Date()))
     .registerValue('repositoryFactory', resolvedFactory)
     .register('embeddingService', () => new EmbeddingService())
-    .register('gmailMessageService', () => new GmailMessageService())
+    .register('gmailMessageService', container => new GmailMessageService({ tenantIntegrations: container.resolve('repositoryFactory').forSystem().tenantIntegrations }))
+    .register('gmailWatchService', container => new GmailWatchService({
+      gmailMessageService: container.resolve('gmailMessageService'),
+      tenantIntegrations: container.resolve('repositoryFactory').forSystem().tenantIntegrations,
+      topicName: process.env.PUBSUB_TOPIC || null,
+    }))
+    .register('providerUsageService', container => new ProviderUsageService({ repository: container.resolve('repositoryFactory').forSystem().tenants }))
     .register('providerRegistry', () => {
       if (providers) return providers;
       const registry = new ProviderRegistry();
@@ -83,9 +97,12 @@ export const createExecutionContainer = ({
         'job',
         new BaseWorker({ taskType: 'job', providerName: defaultAIProviderName })
       ).register(
-        'email_triage',
-        new EmailTriageWorker({ providerName: defaultAIProviderName, gmailProvider: container.resolve('gmailMessageService') })
+        'shift_start',
+        new ShiftStartWorker({ providerName: defaultAIProviderName })
       ).register(
+        'email_triage',
+        new EmailTriageWorker({ providerName: defaultAIProviderName, gmailProvider: container.resolve('gmailMessageService'), taskChainService: null })
+      ).register('email_read', new ChainStepWorker({ taskType: 'email_read' })).register('crm_lookup', new ChainStepWorker({ taskType: 'crm_lookup' })).register('quote_generate', new ChainStepWorker({ taskType: 'quote_generate', providerName: defaultAIProviderName })).register('support_response', new ChainStepWorker({ taskType: 'support_response', providerName: defaultAIProviderName })).register('lead_capture', new ChainStepWorker({ taskType: 'lead_capture' })).register('crm_update', new ChainStepWorker({ taskType: 'crm_update' })).register('email_draft', new ChainStepWorker({ taskType: 'email_draft', providerName: 'gmail-mcp' })).register('approval_gate', new ChainStepWorker({ taskType: 'approval_gate', providerName: 'http-email' })).register('email_send', new ChainStepWorker({ taskType: 'email_send', providerName: 'gmail-mcp' })).register(
         'email_response',
         new EmailResponseWorker({ providerName: defaultAIProviderName })
       ).register(
@@ -108,7 +125,19 @@ export const createTenantExecutionContainer = ({ tenantId, rootContainer }) => {
     .register('queueService', container => new QueueService({
       taskQueueRepository: container.resolve('repositories').taskQueue,
       auditService: container.resolve('auditService'),
+      chainStateRepository: rootContainer.resolve('supabaseAdmin') ? new TaskChainStateRepository(rootContainer.resolve('supabaseAdmin'), tenantId) : null,
       clock: container.resolve('clock'),
+    }))
+    .register('taskChainService', container => new TaskChainService({
+      queueService: container.resolve('queueService'),
+      taskQueueRepository: container.resolve('repositories').taskQueue,
+      auditService: container.resolve('auditService'),
+      chainStateRepository: rootContainer.resolve('supabaseAdmin') ? new TaskChainStateRepository(rootContainer.resolve('supabaseAdmin'), tenantId) : null,
+      specialistRepository: container.resolve('repositories').specialists,
+      employeeRepository: container.resolve('repositories').employees,
+      taskLogRepository: container.resolve('repositories').taskLogs,
+      quotaService: container.resolve('quotaService'),
+      tenantRepository: container.resolve('repositories').tenants,
     }))
     .register('sopService', container => new SOPService({ sopRepository: container.resolve('repositories').sops }))
     .register('quotaService', container => new QuotaService({ tenantRepository: container.resolve('repositories').tenants }))
@@ -128,6 +157,18 @@ export const createTenantExecutionContainer = ({ tenantId, rootContainer }) => {
       approvalRepository: container.resolve('repositories').approvals,
       tenantIntegrations: container.resolve('repositories').tenantIntegrations,
       gmailMessageService: container.resolve('gmailMessageService'),
+      providerUsageService: rootContainer.resolve('providerUsageService'),
+      taskChainService: container.resolve('taskChainService'),
+      contactRepository: container.resolve('repositories').contacts,
+      specialistRepository: container.resolve('repositories').specialists,
+      taskQueueRepository: container.resolve('repositories').taskQueue,
+    }))
+    // Tenant-scoped GmailWatchService: uses the tenant's own tenantIntegrations repository
+    // so that watch metadata is persisted to the correct tenant row.
+    .register('gmailWatchService', container => new GmailWatchService({
+      gmailMessageService: rootContainer.resolve('gmailMessageService'),
+      tenantIntegrations: container.resolve('repositories').tenantIntegrations,
+      topicName: process.env.PUBSUB_TOPIC || null,
     }));
 
   return scoped;

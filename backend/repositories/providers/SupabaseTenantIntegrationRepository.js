@@ -1,7 +1,7 @@
 export class SupabaseTenantIntegrationRepository {
   constructor(supabase) { this.db = supabase; }
   async list(tenantId) {
-    const { data, error } = await this.db.from('tenant_integrations').select('id, provider, display_name, status, scopes, created_at, updated_at').eq('tenant_id', tenantId).order('display_name');
+    const { data, error } = await this.db.from('tenant_integrations').select('id, provider, display_name, status, scopes, access_token_expires_at, last_refreshed_at, created_at, updated_at').eq('tenant_id', tenantId).order('display_name');
     if (error) throw error;
     return data ?? [];
   }

@@ -28,9 +28,29 @@ export async function handleCRMRequest(req, res) {
     if (!tenantId && !isAdmin) return json(res, 403, { error: 'Tenant membership required' });
     const invoiceQuery = supabaseAdmin.from('crm_invoices').select('*');
     const projectQuery = supabaseAdmin.from('crm_projects').select('*');
-    const [invoices, projects] = await Promise.all(tenantId ? [invoiceQuery.eq('tenant_id', tenantId), projectQuery.eq('tenant_id', tenantId)] : [invoiceQuery, projectQuery]);
-    if (invoices.error || projects.error) return json(res, 500, { error: 'Failed to load account operations' });
-    return json(res, 200, { invoices: invoices.data || [], projects: projects.data || [] });
+    const serviceQuery = supabaseAdmin.from('crm_client_services').select('*');
+    const [invoices, projects, services] = await Promise.all(tenantId ? [invoiceQuery.eq('tenant_id', tenantId), projectQuery.eq('tenant_id', tenantId), serviceQuery.eq('tenant_id', tenantId)] : [invoiceQuery, projectQuery, serviceQuery]);
+    if (invoices.error || projects.error || services.error) return json(res, 500, { error: 'Failed to load account operations' });
+    let profile = null;
+    if (tenantId) {
+      const { data: profileRow } = await supabaseAdmin
+        .from('client_profiles')
+        .select('tasks_used, tasks_limit, hours_used, hours_limit')
+        .eq('tenant_id', tenantId)
+        .maybeSingle();
+      profile = profileRow || null;
+    }
+    return json(res, 200, {
+      invoices: invoices.data || [],
+      projects: projects.data || [],
+      services: services.data || [],
+      capacity: profile ? {
+        tasks_used: profile.tasks_used_this_month ?? profile.tasks_used ?? 0,
+        tasks_limit: profile.tasks_limit ?? 0,
+        hours_used: profile.hours_used ?? 0,
+        hours_limit: profile.hours_limit ?? 0,
+      } : null,
+    });
   }
   const projectPath = new URL(req.url, 'http://localhost').pathname;
   if (projectPath === '/api/v1/crm/projects' || projectPath.startsWith('/api/v1/crm/projects/')) {

@@ -10,52 +10,55 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: #f9f1e5;
-    --foreground: #0b0702;
-    --card: #f9f1e5;
-    --card-foreground: #0b0702;
-    --popover: #f9f1e5;
-    --popover-foreground: #0b0702;
-    --primary: #352208;
-    --primary-foreground: #f9f1e5;
-    --secondary: #d1c7ac;
-    --secondary-foreground: #18150d;
-    --muted: #f3e3cc;
-    --muted-foreground: #685634;
-    --accent: #d3c1ac;
-    --accent-foreground: #19140d;
-    --destructive: #991b1b;
-    --destructive-foreground: #fef2f2;
-    --border: #edd5b2;
-    --input: #edd5b2;
-    --ring: #352208;
-    --radius: 0.5rem;
-    --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-    --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  }
+@keyframes ikamva-headline-crossfade {
+  0%, 26% { opacity: 1; transform: translateY(0); }
+  33%, 59% { opacity: 0; transform: translateY(-0.35em); }
+  66%, 92% { opacity: 0; transform: translateY(0.35em); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.hero-rotating-headline { display: inline-grid; min-width: 6.2ch; }
+.hero-rotating-headline > span { grid-area: 1 / 1; animation: ikamva-headline-crossfade 9s infinite; }
+.hero-rotating-headline > span:nth-child(2) { animation-delay: 3s; }
+.hero-rotating-headline > span:nth-child(3) { animation-delay: 6s; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-rotating-headline > span { animation: none; }
+  .hero-rotating-headline > span:not(:first-child) { display: none; }
+}
 
-  .dark {
-    --background: #0b0702;
-    --foreground: #f3e3cc;
-    --card: #150e03;
-    --card-foreground: #f3e3cc;
-    --popover: #150e03;
-    --popover-foreground: #f3e3cc;
-    --primary: #e1bb80;
-    --primary-foreground: #0b0702;
-    --secondary: #2a2315;
-    --secondary-foreground: #e7dfd0;
-    --muted: #201505;
-    --muted-foreground: #d49b46;
-    --accent: #33281b;
-    --accent-foreground: #e9e0d6;
-    --destructive: #7f1d1d;
-    --destructive-foreground: #fef2f2;
-    --border: #2b1b06;
-    --input: #2b1b06;
-    --ring: #e1bb80;
+@layer base {
+  :root, .dark {
+    --background: #0a0a05;
+    --foreground: #fafaf9;
+    --card: rgba(5, 5, 10, 0.4);
+    --card-foreground: #fafaf9;
+    --popover: #05050a;
+    --popover-foreground: #fafaf9;
+    --primary: #fcfc03;
+    --primary-foreground: #0a0a05;
+    --secondary: #494920;
+    --secondary-foreground: #fafaf9;
+    --muted: #494920;
+    --muted-foreground: rgba(250, 250, 249, 0.6);
+    --accent: #fcfc03;
+    --accent-foreground: #0a0a05;
+    --destructive: #991b1b;
+    --destructive-foreground: #fafaf9;
+    --border: rgba(250, 250, 249, 0.1);
+    --input: rgba(250, 250, 249, 0.15);
+    --ring: #fcfc03;
+    --radius: 0.5rem;
+    --font-hero: "Sigmar", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "Inter", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+    /* Semantic states (migrated old primary orange to working/approval states) */
+    --state-idle: #888888;
+    --state-thinking: #60a5fa;
+    --state-working: #FC6F20;
+    --state-waiting: #eab308;
+    --state-approval: 21, 98%, 55%; /* Used in hsla() */
+    --state-paused: #a8a29e;
+    --state-failed: #ef4444;
   }
 }
 
@@ -70,8 +73,8 @@
 
   body {
     background:
-      radial-gradient(circle at 15% -10%, rgba(53, 34, 8, 0.24), transparent 32rem),
-      radial-gradient(circle at 85% 0%, rgba(123, 107, 67, 0.14), transparent 28rem),
+      radial-gradient(circle at 15% -10%, rgba(73, 73, 32, 0.24), transparent 32rem),
+      radial-gradient(circle at 85% 0%, rgba(252, 252, 3, 0.05), transparent 28rem),
       var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
@@ -102,20 +105,42 @@
   }
 
   .glass {
-    background: color-mix(in srgb, var(--card) 72%, transparent);
-    border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
-    backdrop-filter: blur(24px) saturate(1.2);
-    box-shadow: var(--shadow-lift);
+    background: rgba(5, 5, 10, 0.4);
+    border: 1px solid rgba(250, 250, 249, 0.1);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+
+  .glass-panel {
+    background: rgba(5, 5, 10, 0.4);
+    border: 1px solid rgba(250, 250, 249, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+  }
+
+  .hover-scale {
+    transition: transform 0.2s ease-in-out;
+  }
+  .hover-scale:hover {
+    transform: scale(0.83);
+  }
+
+  .pill-radius {
+    border-radius: 107px !important;
+  }
+
+  .flex-1-container {
+    flex: 1;
   }
 
   .glass-strong {
-    background: color-mix(in srgb, var(--card) 86%, transparent);
-    border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
-    backdrop-filter: blur(28px) saturate(1.25);
+    background: rgba(5, 5, 10, 0.6);
+    border: 1px solid rgba(250, 250, 249, 0.15);
+    backdrop-filter: blur(16px);
   }
 
   .double-bezel {
-    @apply rounded-[2rem] bg-white/45 p-1.5 ring-1 ring-emerald-950/10;
+    @apply rounded-[2rem] bg-[#0a0a05]/45 p-1.5 ring-1 ring-[#fafaf9]/10;
   }
 
   .double-bezel-core {
@@ -140,5 +165,38 @@
 
   .text-balance-tight {
     text-wrap: balance;
+  }
+
+  /* Hide scrollbars visually while preserving scroll behaviour */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE / Edge */
+    scrollbar-width: none;     /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;             /* Chrome / Safari / Opera */
+  }
+
+  /* Apply to all overflow-y-auto containers sitewide */
+  .overflow-y-auto {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .overflow-y-auto::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Prevent browser autofill from flashing a white/yellow background on dark inputs */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.08) inset !important;
+    -webkit-text-fill-color: #fafaf9 !important;
+    caret-color: #fcfc03 !important;
+    transition: background-color 9999s ease-in-out 0s;
+  }
+
+  /* Consistent placeholder colour on all inputs */
+  input::placeholder {
+    color: rgba(250, 250, 249, 0.3);
   }
 }

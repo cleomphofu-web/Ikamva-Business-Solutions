@@ -96,58 +96,68 @@ export default function SignUp() {
   return (
     <div className="min-h-screen bg-background px-6 py-12">
       <div className="mx-auto flex min-h-[calc(100vh-6rem)] max-w-md flex-col justify-center">
-        <Link to="/" className="mb-8 inline-flex self-center rounded-2xl bg-white px-4 py-3 shadow-sm">
+        <Link to="/" className="mb-8 inline-flex self-center items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/6 border border-white/10 hover:bg-white/10 transition-colors">
           <Logo height={30} />
         </Link>
-        {success ? <div className="rounded-[2rem] border border-emerald-950/10 bg-white/85 p-8 shadow-[0_30px_110px_-70px_rgba(23,55,39,0.45)] backdrop-blur-xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-900/55">Account ready</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-emerald-950">Your workspace is ready</h1>
-          <p className="mt-4 text-sm leading-6 text-emerald-950/70">Email confirmation is bypassed in development mode — you can sign in immediately.</p>
-          <Button type="button" className="mt-6 w-full rounded-full" onClick={() => navigate('/login', { replace: true })}>Sign in</Button>
-        </div> : <form onSubmit={handleSubmit} className="rounded-[2rem] border border-emerald-950/10 bg-white/85 p-8 shadow-[0_30px_110px_-70px_rgba(23,55,39,0.45)] backdrop-blur-xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-900/55">Start your workspace</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-emerald-950">Create your Ikamva account</h1>
-          <p className="mt-3 text-sm leading-6 text-emerald-950/66">We’ll create your account, send a verification email, and queue your application for review.</p>
-
-          {error && (
-            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
-
-          <div className="mt-6 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="signup-name">Full name</Label>
-              <Input id="signup-name" value={form.fullName} onChange={update('fullName')} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="signup-company">Company name</Label>
-              <Input id="signup-company" value={form.companyName} onChange={update('companyName')} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="signup-phone">Phone</Label>
-              <Input id="signup-phone" value={form.phone} onChange={update('phone')} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="signup-email">Email</Label>
-              <Input id="signup-email" type="email" autoComplete="email" value={form.email} onChange={update('email')} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="signup-password">Password</Label>
-              <Input id="signup-password" type="password" autoComplete="new-password" value={form.password} onChange={update('password')} required minLength={8} />
-            </div>
+        {success ? <div className="glass-panel p-8 md:p-10 shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
+          <div className="relative z-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Account ready</p>
+            <h1 className="mt-3 text-3xl font-display font-semibold tracking-tight text-foreground">Your workspace is ready</h1>
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">Email confirmation is bypassed in development mode — you can sign in immediately.</p>
+            <Button type="button" className="mt-8 w-full rounded-xl h-11 font-medium bg-primary text-primary-foreground hover-scale" onClick={() => navigate('/login', { replace: true })}>Sign in &rarr;</Button>
           </div>
+        </div> : <form onSubmit={handleSubmit} className="glass-panel p-8 md:p-10 shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
+          <div className="relative z-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Start your workspace</p>
+            <h1 className="mt-3 text-3xl font-display font-semibold tracking-tight text-foreground">Create your Ikamva account</h1>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">We’ll create your account, send a verification email, and queue your application for review.</p>
 
-          <Button type="submit" className="mt-6 w-full rounded-full" disabled={loading}>
-            {loading ? 'Creating account…' : 'Create account'}
-          </Button>
+            {error && (
+              <div className="mt-6 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive-foreground">
+                {error}
+              </div>
+            )}
 
-          <p className="mt-4 text-center text-sm text-emerald-950/62">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-emerald-950 underline underline-offset-4">
-              Sign in
-            </Link>
-          </p>
+            <div className="mt-8 flex flex-col gap-5">
+              <div className="flex flex-col md:flex-row gap-5">
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="signup-name" className="text-muted-foreground">Full name</Label>
+                  <Input id="signup-name" value={form.fullName} onChange={update('fullName')} required className="bg-black/20 border-border/50 h-11 rounded-lg" />
+                </div>
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="signup-company" className="text-muted-foreground">Company name</Label>
+                  <Input id="signup-company" value={form.companyName} onChange={update('companyName')} required className="bg-black/20 border-border/50 h-11 rounded-lg" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-phone" className="text-muted-foreground">Phone</Label>
+                <Input id="signup-phone" value={form.phone} onChange={update('phone')} required className="bg-black/20 border-border/50 h-11 rounded-lg" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-email" className="text-muted-foreground">Email</Label>
+                <Input id="signup-email" type="email" autoComplete="email" value={form.email} onChange={update('email')} required className="bg-black/20 border-border/50 h-11 rounded-lg" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-password" className="text-muted-foreground">Password</Label>
+                <Input id="signup-password" type="password" autoComplete="new-password" value={form.password} onChange={update('password')} required minLength={8} className="bg-black/20 border-border/50 h-11 rounded-lg" />
+              </div>
+            </div>
+
+            <Button type="submit" className="mt-8 w-full rounded-xl h-11 font-medium bg-primary text-primary-foreground hover-scale" disabled={loading}>
+              {loading ? 'Creating account…' : 'Create account'}
+            </Button>
+
+            <div className="bg-gradient-to-r from-transparent via-border to-transparent my-8 h-[1px] w-full" />
+
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              Already have an account?{' '}
+              <Link to="/login" className="font-medium text-foreground underline underline-offset-4 hover:text-primary transition-colors">
+                Sign in
+              </Link>
+            </p>
+          </div>
         </form>}
       </div>
     </div>

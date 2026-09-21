@@ -18,6 +18,8 @@ const JOB_TONE: Record<string, string> = {
 
 function SkillsPage() {
   const { employee, logs, loading, error } = useLiveWorkspace();
+  const [integrations, setIntegrations] = useState<any[]>([]);
+  useEffect(() => { void workforceApi.listIntegrations().then((result) => setIntegrations(result.integrations || [])).catch(() => setIntegrations([])); }, []);
   const configuredSkills = Array.isArray(employee?.configuration?.skills) ? employee.configuration.skills : [];
   const [skillIds, setSkillIds] = useState<string[]>([]);
   useEffect(() => { setSkillIds(configuredSkills); }, [employee?.id, employee?.configuration?.skills]);
@@ -25,7 +27,12 @@ function SkillsPage() {
   const [jobSkill, setJobSkill] = useState<any>(null);
   const [jobInstruction, setJobInstruction] = useState("");
   const [savingSkill, setSavingSkill] = useState<string | null>(null);
-  const skills = availableSkills.map((skill) => ({ ...skill, enabled: skillIds.includes(skill.id) }));
+  const connectedScopes = new Set(integrations.filter(item => item.status === "connected").flatMap(item => item.scopes || []));
+  const skills = availableSkills.map((skill) => ({
+    ...skill,
+    enabled: skillIds.includes(skill.id),
+    integrationReady: skill.permissions.length === 0 || skill.permissions.every(permission => connectedScopes.has(permission)),
+  }));
   const jobs = logs.filter((log) => log?.task_type && log.task_type !== "chat").map((log) => ({ id: log.id, title: log.action || log.task_type, skill: log.task_type, when: log.created_at ? new Date(log.created_at).toLocaleString() : "", state: log.error ? "failed" : "completed" }));
 
   return (
@@ -49,6 +56,7 @@ function SkillsPage() {
                   checked={s.enabled}
                   aria-label={`Enable ${s.name}`}
                   onCheckedChange={(v) => {
+                    if (v && !s.integrationReady) { toast.error(`Connect the required integration before enabling ${s.name}.`); return; }
                     if (s.permissions.length > 0) { if (v && !s.enabled) setUpgradeSkill(s); return; }
                     if (!employee?.id) return;
                     setSavingSkill(s.id);
@@ -59,6 +67,9 @@ function SkillsPage() {
                   disabled={savingSkill === s.id}
                 />
               </div>
+              {s.permissions.length > 0 && <p className={`mt-3 text-xs ${s.integrationReady ? "text-emerald-700" : "text-amber-700"}`}>
+                {s.integrationReady ? "Integration connected" : "Connect the required integration first"}
+              </p>}
               <ul className="mt-4 flex flex-wrap gap-2">
                 {s.capabilities.map((c) => (
                   <li key={c} className="rounded-full bg-muted/60 px-3 py-1 text-xs text-muted-foreground">

@@ -9,7 +9,7 @@ export class EmailResponseWorker extends BaseWorker {
     const action = { to: payload.sender, subject: `Re: ${payload.subject}`, text: content, thread_id: payload.thread_id || null, message_id: payload.message_id };
     if (gmailMessageService && payload.credential_reference) {
       const raw = Buffer.from(`To: ${action.to}\r\nSubject: ${action.subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${action.text}`).toString('base64url');
-      const draft = await gmailMessageService.createDraft(payload.credential_reference, { raw, threadId: action.thread_id });
+      const draft = await gmailMessageService.createDraft(payload.credential_reference, { raw, threadId: action.thread_id }, task.tenant_id);
       action.draft_id = draft?.id || null;
     }
     return { ...result, output: { ...result.output, status: 'awaiting_approval', content, action } };

@@ -8,3 +8,5 @@ export { TaskLogRepository } from './TaskLogRepository.js';
 export { TaskQueueRepository } from './TaskQueueRepository.js';
 export { TenantRepository } from './TenantRepository.js';
 export { SOPRepository } from './SOPRepository.js';
+export { SpecialistRepository } from './SpecialistRepository.js';
+export { InMemorySpecialistRepository } from './InMemorySpecialistRepository.js';

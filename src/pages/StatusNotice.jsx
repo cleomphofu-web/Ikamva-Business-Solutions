@@ -7,24 +7,27 @@ function StatusNotice({ eyebrow, title, body, primaryHref, primaryLabel, seconda
   return (
     <div className="min-h-screen bg-background px-6 py-12">
       <div className="mx-auto flex min-h-[calc(100vh-6rem)] max-w-xl flex-col justify-center">
-        <Link to="/" className="mb-8 inline-flex self-center rounded-2xl bg-white px-4 py-3 shadow-sm">
+        <Link to="/" className="mb-8 inline-flex self-center items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/6 border border-white/10 hover:bg-white/10 transition-colors">
           <Logo height={30} />
         </Link>
-        <div className="rounded-[2rem] border border-emerald-950/10 bg-white/80 p-8 shadow-[0_30px_110px_-70px_rgba(23,55,39,0.45)] backdrop-blur-xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-900/55">{eyebrow}</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-emerald-950">{title}</h1>
-          <p className="mt-4 text-sm leading-6 text-emerald-950/66">{body}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            {primaryHref && (
-              <Button asChild className="rounded-full">
-                <Link to={primaryHref}>{primaryLabel}</Link>
-              </Button>
-            )}
-            {secondaryHref && (
-              <Button asChild variant="outline" className="rounded-full">
-                <Link to={secondaryHref}>{secondaryLabel}</Link>
-              </Button>
-            )}
+        <div className="glass-panel p-8 md:p-10 shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
+          <div className="relative z-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">{eyebrow}</p>
+            <h1 className="mt-3 text-3xl font-display font-semibold tracking-tight text-foreground">{title}</h1>
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">{body}</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {primaryHref && (
+                <Button asChild className="rounded-xl h-11 px-6 font-medium bg-primary text-primary-foreground hover-scale">
+                  <Link to={primaryHref}>{primaryLabel}</Link>
+                </Button>
+              )}
+              {secondaryHref && (
+                <Button asChild variant="outline" className="rounded-xl h-11 px-6 font-medium border-border/50 bg-black/20 text-foreground hover:bg-white/10">
+                  <Link to={secondaryHref}>{secondaryLabel}</Link>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -40,7 +43,7 @@ export function ApplicationPendingPage() {
       body="Thanks for registering. A platform administrator needs to review your application before your dashboard becomes available."
       primaryHref="/verify-email"
       primaryLabel="Check verification status"
-      secondaryHref="/signin"
+      secondaryHref="/login"
       secondaryLabel="Sign in"
     />
   );
@@ -68,7 +71,7 @@ export function ProvisioningPage() {
       body="Your application was approved, and the workspace is being provisioned. You will be able to access the dashboard as soon as setup completes."
       primaryHref="/dashboard"
       primaryLabel="Try dashboard"
-      secondaryHref="/signin"
+      secondaryHref="/login"
       secondaryLabel="Sign in again"
     />
   );
