@@ -1,9 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import Logo from '@/components/landing/Logo';
 import authService from '@/lib/auth-service';
 import { accessApi } from '@/lib/ikamva/api-client';
 

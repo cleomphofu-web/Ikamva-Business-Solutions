@@ -1,3 +1,5 @@
+import crypto from 'node:crypto';
+
 /**
  * SupabaseTenantRepository.js
  *
@@ -45,7 +47,26 @@ export class SupabaseTenantRepository {
     return data ?? null;
   }
   async listActive() { const { data, error } = await this.db.from('client_profiles').select('tenant_id').eq('status', 'active'); if (error) throw error; return data || []; }
-  async findByWebhookToken(token) { const { data, error } = await this.db.from('tenants').select('id').eq('webhook_token', token).maybeSingle(); if (error) throw error; return data ?? null; }
+
+  async findByWebhookToken(rawToken) {
+    if (!rawToken || typeof rawToken !== 'string') return null;
+    const computedHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const { data, error } = await this.db
+      .from('tenants')
+      .select('id, webhook_token')
+      .eq('webhook_token', computedHash)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data || !data.webhook_token) return null;
+
+    const storedBuf = Buffer.from(data.webhook_token, 'hex');
+    const computedBuf = Buffer.from(computedHash, 'hex');
+    if (storedBuf.length === computedBuf.length && crypto.timingSafeEqual(storedBuf, computedBuf)) {
+      return { id: data.id };
+    }
+    return null;
+  }
+
   async consumeProviderCall(tenantId, limit) { const { data, error } = await this.db.rpc('consume_tenant_provider_call', { p_tenant_id: tenantId, p_limit: limit }); if (error) throw error; return data === true; }
 
   async incrementTasksUsed(clientProfileId) {

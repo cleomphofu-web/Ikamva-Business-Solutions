@@ -12,7 +12,7 @@
 |-------------|-------|
 | Gmail OAuth connected for the tenant | Dashboard → Tools → Gmail |
 | Backend publicly reachable via HTTPS | Production domain or tunnel (see §5) |
-| Tenant's `webhook_token` set in DB | Run `SELECT webhook_token FROM tenants WHERE id = '<tenant_id>';` |
+| Tenant's `webhook_token` set in DB | Run `SELECT webhook_token FROM tenants WHERE id = '<tenant_id>';` (stores SHA-256 digest; pass raw token in query param) |
 | GCP project with billing enabled | console.cloud.google.com |
 
 ---

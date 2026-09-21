@@ -10,6 +10,7 @@ Repositories own database reads/writes; callers do not bypass them.
 - Tenant repositories require an explicit tenant identity.
 - Preserve queue at-least-once semantics and idempotency.
 - Maintain contract coverage for enqueue, claim, completion, retry, cancellation, dead-letter, quota, idempotency, and concurrent claim.
+- Webhook token lookups must hash raw input tokens using SHA-256 and perform constant-time comparison against stored hashes.
 
 ## Work Guidance
 - Match existing factory and dependency-injection patterns.
